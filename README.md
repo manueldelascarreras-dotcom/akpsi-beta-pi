@@ -1,8 +1,8 @@
 # AKPsi Beta Pi Website
 
-The chapter website, a rush application form, and a CMS to manage everything. It runs on a small Node server (`server.js`) with no other dependencies.
+The chapter website, a rush application form, and a CMS to manage everything. It is live on Firebase at **https://umiami-akpsi.web.app** (CMS: https://umiami-akpsi.web.app/admin.html). The code is on GitHub at manueldelascarreras-dotcom/akpsi-beta-pi.
 
-## Run it
+## Run it locally
 
 ```bash
 node server.js
@@ -11,7 +11,7 @@ node server.js
 - Website: http://localhost:3457
 - CMS: http://localhost:3457/admin.html
 
-The first time you open the CMS it asks you to create the admin password. Share it only with the e-board.
+Locally the site reads and writes the files in `data/` and `private/`. The live site does not use these files: it reads and saves everything in Firebase (see below), so make content changes in the live CMS.
 
 ## Pages
 
@@ -40,7 +40,7 @@ The first time you open the CMS it asks you to create the admin password. Share 
 
 Brothers add their own headshot and LinkedIn at `update.html`. They search for their name, upload a photo, paste their LinkedIn URL, fix their major, pledge class, or graduation year, and enter the chapter code. Their card updates on the Members page right away.
 
-Manage it at the top of **Members** in the CMS: copy the invite message for the group chat, change the code, pause updates, or turn on "Review updates before they go live". Every update is listed there with Undo (or Approve / Reject when review is on). The code and settings live in `private/settings.json`, and the update log in `private/updates.json`.
+Manage it at the top of **Members** in the CMS: copy the invite message for the group chat, change the code, pause updates, or turn on "Review updates before they go live". Every update is listed there with Undo (or Approve / Reject when review is on). On the live site the code, settings and update log live in Firestore (`private/settings`, `private/updates`).
 
 Edits show a "Save changes" bar. Nothing changes on the website until you save. Excel imports and photo uploads publish right away.
 
@@ -71,9 +71,26 @@ Every CMS save keeps a backup of the previous version in `private/backups/` (the
 
 Styles: `styles.css` (base, nav, footer, member cards), `sections.css` (page sections), `admin.css` (CMS). Scripts: `site.js` (nav, theme, member cards), `sections.js` (renders sections from data), `admin.js` (CMS).
 
-## Putting it online
+## Live site (Firebase)
 
-Because the CMS saves data and files, the site needs a host that runs Node and keeps files on disk (for example Render, Railway, or Fly.io with a persistent disk, or any small VPS). A static-only host like GitHub Pages or plain Firebase Hosting can't run the CMS or accept applications. The server reads the `PORT` environment variable if the host sets one.
+Firebase project: **umiami-akpsi** (Blaze plan, same billing account as the soccer site).
+
+| Piece | Where |
+|---|---|
+| Pages, CSS, JS, crest | Firebase Hosting |
+| API (`/api/**`): applications, CMS login and saves, uploads, profile updates | Cloud Function `api` in `functions/index.js` (same routes as `server.js`) |
+| Site content (site, members, events, gallery) | Firestore `content/{name}`, publicly readable; only the API writes it |
+| Applications, CMS password, update code and log, backups | Firestore `applications`, `private`, `backups` (not readable from the browser) |
+| Uploaded photos and video | Storage `public/...` |
+| Resumes and headshots | Storage `private/uploads/...` (only through the logged-in CMS) |
+
+Deploy after changing code:
+
+```bash
+firebase deploy --project umiami-akpsi
+```
+
+Uploads through the live CMS are limited to 30 MB each. For the About video, paste a YouTube or Vimeo link instead of uploading a large file.
 
 ## Themes
 
