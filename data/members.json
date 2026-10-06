@@ -1,0 +1,740 @@
+{
+  "eboard": [],
+  "pledgeEducators": [],
+  "brothers": [
+    {
+      "name": "Ace Berenyi"
+    },
+    {
+      "name": "Adrianna Zuber"
+    },
+    {
+      "name": "Alan Lamazares"
+    },
+    {
+      "name": "Ali Sari",
+      "linkedin": "https://www.linkedin.com/in/ali-j-sari/"
+    },
+    {
+      "name": "Alyssa Kimble"
+    },
+    {
+      "name": "Ana Stewart",
+      "linkedin": "https://www.linkedin.com/in/ana-stewart-8047b2221/",
+      "major": "Economics"
+    },
+    {
+      "name": "Andre Hakim",
+      "linkedin": "https://www.linkedin.com/in/andre-hakim/",
+      "major": "Finance and Marketing"
+    },
+    {
+      "name": "Andrea Alday"
+    },
+    {
+      "name": "Angelica Otto",
+      "linkedin": "https://www.linkedin.com/in/angelica-otto/",
+      "major": "Finance and Mathematics"
+    },
+    {
+      "name": "Anna Zappola",
+      "linkedin": "https://www.linkedin.com/in/anna-zappola/",
+      "major": "Real Estate and Marketing"
+    },
+    {
+      "name": "Anthony Ponzio"
+    },
+    {
+      "name": "Anu Rajesh",
+      "linkedin": "https://www.linkedin.com/in/aanurajesh/"
+    },
+    {
+      "name": "Arielle Patin",
+      "linkedin": "https://www.linkedin.com/in/arielle-p-a6ba34237/",
+      "major": "Strategic Advertising and Media Management"
+    },
+    {
+      "name": "Arielle Polk"
+    },
+    {
+      "name": "Artemiy Kamenkovich"
+    },
+    {
+      "name": "Aryan Rajpara"
+    },
+    {
+      "name": "Ava Baysura"
+    },
+    {
+      "name": "Ava Graziano"
+    },
+    {
+      "name": "Ava Martin"
+    },
+    {
+      "name": "Avani Kuders",
+      "linkedin": "https://www.linkedin.com/in/avani-kuders-9a65ab274/",
+      "major": "Legal Studies and Marketing"
+    },
+    {
+      "name": "Avi Parmar",
+      "linkedin": "https://www.linkedin.com/in/avinparmar/",
+      "major": "Finance and Business Administration"
+    },
+    {
+      "name": "Ben Patrick"
+    },
+    {
+      "name": "Ben Pollack"
+    },
+    {
+      "name": "Blake Jankowski",
+      "linkedin": "https://www.linkedin.com/in/blake-jankowski/",
+      "major": "Biomedical Engineering"
+    },
+    {
+      "name": "Brandon Finkel"
+    },
+    {
+      "name": "Brandon Goetz"
+    },
+    {
+      "name": "Brandon Warner",
+      "linkedin": "https://www.linkedin.com/in/brandon-warner18/",
+      "major": "Finance"
+    },
+    {
+      "name": "Caden Gold",
+      "linkedin": "https://www.linkedin.com/in/cadengold/",
+      "major": "Finance"
+    },
+    {
+      "name": "Caleb Yoskowitz",
+      "linkedin": "https://www.linkedin.com/in/calebyoskowitz/",
+      "major": "Finance"
+    },
+    {
+      "name": "Carolina Sanz Arribas",
+      "linkedin": "https://www.linkedin.com/in/carolina-sanz-arribas/",
+      "major": "Marketing"
+    },
+    {
+      "name": "Caroline Gerber",
+      "linkedin": "https://www.linkedin.com/in/caroline-gerber/",
+      "major": "Political Science"
+    },
+    {
+      "name": "Cassidy Brenegan"
+    },
+    {
+      "name": "Cassie Cowen"
+    },
+    {
+      "name": "Cellina Rabolli"
+    },
+    {
+      "name": "Cienna Thomas"
+    },
+    {
+      "name": "Claire Coco"
+    },
+    {
+      "name": "Claire Gerber",
+      "linkedin": "https://www.linkedin.com/in/clairegerber/",
+      "major": "Advertising"
+    },
+    {
+      "name": "Colin Crisp",
+      "linkedin": "https://www.linkedin.com/in/colincrisp1/"
+    },
+    {
+      "name": "Danica Mujica"
+    },
+    {
+      "name": "Daniella Blanco",
+      "linkedin": "https://www.linkedin.com/in/daniella-blanco-/",
+      "major": "Political Science"
+    },
+    {
+      "name": "David Gleason"
+    },
+    {
+      "name": "Deacon Eckes"
+    },
+    {
+      "name": "Dhilon Gupta"
+    },
+    {
+      "name": "Dylan Medina"
+    },
+    {
+      "name": "Eddie Moravick"
+    },
+    {
+      "name": "Edmund Liew"
+    },
+    {
+      "name": "Eli Gordon",
+      "linkedin": "https://www.linkedin.com/in/eligordon/"
+    },
+    {
+      "name": "Elias Alvarez - Sosa"
+    },
+    {
+      "name": "Elie Lervik"
+    },
+    {
+      "name": "Elizabeth Cardelle"
+    },
+    {
+      "name": "Ella Leon"
+    },
+    {
+      "name": "Elle Bank"
+    },
+    {
+      "name": "Elle Volvich"
+    },
+    {
+      "name": "Elliotte Kahler",
+      "linkedin": "https://www.linkedin.com/in/elliottekahler/",
+      "major": "Legal Studies"
+    },
+    {
+      "name": "Emerson DeMilt"
+    },
+    {
+      "name": "Emma Rubinstein",
+      "linkedin": "https://www.linkedin.com/in/emma-rubinstein/",
+      "major": "Business Analytics"
+    },
+    {
+      "name": "Emmersyn Bassett"
+    },
+    {
+      "name": "Evan Torres",
+      "linkedin": "https://www.linkedin.com/in/evan-torres-3157b097/",
+      "major": "Finance and Legal Studies"
+    },
+    {
+      "name": "Fabio Luengo"
+    },
+    {
+      "name": "Fernando Sepulveda",
+      "linkedin": "https://www.linkedin.com/in/fernando-sepulveda-sagaseta/",
+      "major": "Business and Engineering"
+    },
+    {
+      "name": "Foday Gayflor"
+    },
+    {
+      "name": "Giada Roti"
+    },
+    {
+      "name": "Gianna Gammarati"
+    },
+    {
+      "name": "Giovanni Perri",
+      "linkedin": "https://www.linkedin.com/in/giovanni-perri-bba261334/",
+      "major": "Legal Studies and Marketing"
+    },
+    {
+      "name": "Graham Storper"
+    },
+    {
+      "name": "Grayson Delarber"
+    },
+    {
+      "name": "Griffin Kirk",
+      "linkedin": "https://www.linkedin.com/in/griffin-kirk-1ba172239/",
+      "major": "Finance"
+    },
+    {
+      "name": "Imani Kodjou"
+    },
+    {
+      "name": "Isaac Topfer"
+    },
+    {
+      "name": "Isabella Fiore",
+      "linkedin": "https://www.linkedin.com/in/isabellafiore3/"
+    },
+    {
+      "name": "Izzy Green"
+    },
+    {
+      "name": "Jackson Gray"
+    },
+    {
+      "name": "Jacob Garrett",
+      "linkedin": "https://www.linkedin.com/in/jacob-alexander-garrett/",
+      "major": "Business"
+    },
+    {
+      "name": "Jacob Watt"
+    },
+    {
+      "name": "Jaell-Ann Auguste",
+      "linkedin": "https://www.linkedin.com/in/jaell-ann-auguste/",
+      "major": "Business"
+    },
+    {
+      "name": "Jake Chisholm",
+      "linkedin": "https://www.linkedin.com/in/jake-chisholm1/"
+    },
+    {
+      "name": "Jake Whent",
+      "linkedin": "https://www.linkedin.com/in/jakewhent/",
+      "major": "Finance"
+    },
+    {
+      "name": "Jax Julkowski",
+      "linkedin": "https://www.linkedin.com/in/jax-julkowski-b09456312/",
+      "major": "Biomedical Engineering"
+    },
+    {
+      "name": "Jean Dorta",
+      "linkedin": "https://www.linkedin.com/in/jean-dorta/",
+      "major": "Business Analytics and Entrepreneurship"
+    },
+    {
+      "name": "Jessica Hull",
+      "linkedin": "https://www.linkedin.com/in/jessica-hull-a802b0318/",
+      "major": "Marketing"
+    },
+    {
+      "name": "Jessie Bavly",
+      "linkedin": "https://www.linkedin.com/in/jessie-bavly-609a98265/",
+      "major": "Legal Studies, Health Management and Policy, and Marketing"
+    },
+    {
+      "name": "Jett Vanderhorst"
+    },
+    {
+      "name": "Jonas Junquera"
+    },
+    {
+      "name": "Jordan Shelton",
+      "linkedin": "https://www.linkedin.com/in/jordan-mshelton/",
+      "major": "Finance"
+    },
+    {
+      "name": "Josh Koppelman"
+    },
+    {
+      "name": "Josh Labrado",
+      "linkedin": "https://www.linkedin.com/in/jjlabrado/"
+    },
+    {
+      "name": "Josh Sackett",
+      "linkedin": "https://www.linkedin.com/in/josh-sackett1/",
+      "major": "Accounting and Finance"
+    },
+    {
+      "name": "Julia Rocha",
+      "linkedin": "https://www.linkedin.com/in/julia-rocha-b0189329a/",
+      "major": "Marketing and Legal Studies"
+    },
+    {
+      "name": "Justin Bifone"
+    },
+    {
+      "name": "Justin Levy",
+      "linkedin": "https://www.linkedin.com/in/justinalevy/"
+    },
+    {
+      "name": "Kaelyn Burval",
+      "linkedin": "https://www.linkedin.com/in/kaelynburval/"
+    },
+    {
+      "name": "Karter Ticconi",
+      "linkedin": "https://www.linkedin.com/in/karterticconi/",
+      "major": "Business Management and Legal Studies"
+    },
+    {
+      "name": "Kaya Tretter"
+    },
+    {
+      "name": "Kayla Boggs",
+      "linkedin": "https://www.linkedin.com/in/kayla-boggs/",
+      "major": "Health Management and Marketing"
+    },
+    {
+      "name": "Kendall Humphries-Solis"
+    },
+    {
+      "name": "Kirsten Wang",
+      "linkedin": "https://www.linkedin.com/in/wangkirsten/",
+      "major": "Business"
+    },
+    {
+      "name": "Kyla Kavanaugh"
+    },
+    {
+      "name": "Lexi Duperrouzel",
+      "linkedin": "https://www.linkedin.com/in/lexi-duperrouzel/",
+      "major": "Political Science"
+    },
+    {
+      "name": "Lexi Noonan",
+      "linkedin": "https://www.linkedin.com/in/lexinoonan/",
+      "major": "Sport Administration"
+    },
+    {
+      "name": "Lilee Martinelle"
+    },
+    {
+      "name": "Luca Cassoni"
+    },
+    {
+      "name": "Lucinda Winlaw",
+      "linkedin": "https://www.linkedin.com/in/lucinda-winlaw-214b71319/",
+      "major": "STEM Marketing"
+    },
+    {
+      "name": "Luisa Ferreira"
+    },
+    {
+      "name": "Luke DiMaggio",
+      "linkedin": "https://www.linkedin.com/in/luke-dimaggio-8a03a8289/",
+      "major": "Business"
+    },
+    {
+      "name": "Madden Cole",
+      "linkedin": "https://www.linkedin.com/in/maddencole/",
+      "major": "Finance and Accounting"
+    },
+    {
+      "name": "Madelyn Stenson",
+      "linkedin": "https://www.linkedin.com/in/madelynstenson/",
+      "major": "Marketing"
+    },
+    {
+      "name": "Maggie Kusmin",
+      "linkedin": "https://www.linkedin.com/in/maggie-p-kusmin/",
+      "major": "Legal Studies"
+    },
+    {
+      "name": "Makena Wong",
+      "linkedin": "https://www.linkedin.com/in/makenawong657/",
+      "major": "Creative Advertising"
+    },
+    {
+      "name": "Manuel de las Carreras",
+      "linkedin": "https://www.linkedin.com/in/manuel-de-las-carreras",
+      "photo": "images/members/manuel-de-las-carreras-61d523.jpg"
+    },
+    {
+      "name": "Mariana Bernal",
+      "linkedin": "https://www.linkedin.com/in/mariana-bernal-356679336/",
+      "major": "Business"
+    },
+    {
+      "name": "Mario Iadeluca",
+      "linkedin": "https://www.linkedin.com/in/marioiadeluca/",
+      "major": "Finance"
+    },
+    {
+      "name": "Mary-Grace Cardelle",
+      "linkedin": "https://www.linkedin.com/in/mary-grace-cardelle-1555181b5/",
+      "major": "Journalism"
+    },
+    {
+      "name": "Matias Rubin",
+      "linkedin": "https://www.linkedin.com/in/matiasrubin/",
+      "major": "Business"
+    },
+    {
+      "name": "Matteo Farinacci",
+      "linkedin": "https://www.linkedin.com/in/matteo-farinacci/",
+      "major": "Film - Entertainment Business"
+    },
+    {
+      "name": "Maurice McCalla",
+      "linkedin": "https://www.linkedin.com/in/mauricemccalla/",
+      "major": "Business Analytics and Finance"
+    },
+    {
+      "name": "Maya Yamaguchi",
+      "linkedin": "https://www.linkedin.com/in/mayayamaguchi/",
+      "major": "Business"
+    },
+    {
+      "name": "Meera Shah"
+    },
+    {
+      "name": "Megan Haniger",
+      "linkedin": "https://www.linkedin.com/in/megan-haniger-6aa069307/"
+    },
+    {
+      "name": "Mia Wallis",
+      "linkedin": "https://www.linkedin.com/in/miawallis/",
+      "major": "Business"
+    },
+    {
+      "name": "Michael Russo",
+      "linkedin": "https://www.linkedin.com/in/michaelrusso19/",
+      "major": "Finance"
+    },
+    {
+      "name": "Miguel Escobar"
+    },
+    {
+      "name": "Mikki Taye",
+      "linkedin": "https://www.linkedin.com/in/mikki-taye1/",
+      "major": "Business Analytics and Finance"
+    },
+    {
+      "name": "Milena Meneghini",
+      "linkedin": "https://www.linkedin.com/in/milena-meneghini-a06838330/",
+      "major": "Pre-Medical"
+    },
+    {
+      "name": "Miranda de Legorburu"
+    },
+    {
+      "name": "Molly Radice"
+    },
+    {
+      "name": "Natalia Sulzer"
+    },
+    {
+      "name": "Nate Gelb"
+    },
+    {
+      "name": "Nathan Livermore"
+    },
+    {
+      "name": "Navya Maheshwari"
+    },
+    {
+      "name": "Nayoung Kim"
+    },
+    {
+      "name": "Nic Moffett",
+      "linkedin": "https://www.linkedin.com/in/nicholas-moffett/",
+      "major": "Business Technology"
+    },
+    {
+      "name": "Nicholas Gavin",
+      "linkedin": "https://www.linkedin.com/in/nicholastgavin/",
+      "major": "Business"
+    },
+    {
+      "name": "Nick Bolduc",
+      "linkedin": "https://www.linkedin.com/in/nick-bolduc/",
+      "major": "Finance"
+    },
+    {
+      "name": "Nolan Smith"
+    },
+    {
+      "name": "Olivia Simonian",
+      "linkedin": "https://www.linkedin.com/in/oliviasimonian/"
+    },
+    {
+      "name": "Paolo Delia",
+      "linkedin": "https://www.linkedin.com/in/paolovdelia/",
+      "major": "Business"
+    },
+    {
+      "name": "Pauline O'Hara"
+    },
+    {
+      "name": "Pranav Shrestha",
+      "linkedin": "https://www.linkedin.com/in/pranav-shrestha-66248659/"
+    },
+    {
+      "name": "Priyanka Seth"
+    },
+    {
+      "name": "Rachel Young"
+    },
+    {
+      "name": "Rafael Waldman",
+      "linkedin": "https://www.linkedin.com/in/rafjwaldman/",
+      "major": "Business"
+    },
+    {
+      "name": "Raina Ghosh",
+      "linkedin": "https://www.linkedin.com/in/raina-ghosh-bb023a254/",
+      "major": "Legal Studies and Finance"
+    },
+    {
+      "name": "Raphaelle Neim"
+    },
+    {
+      "name": "Regan Giblin",
+      "linkedin": "https://www.linkedin.com/in/regan-giblin/",
+      "major": "Finance and Business Analytics"
+    },
+    {
+      "name": "Richard VerHoef"
+    },
+    {
+      "name": "Ritchie Sabalvaro"
+    },
+    {
+      "name": "Rohan Paleyanda"
+    },
+    {
+      "name": "Ronen Wittenberg"
+    },
+    {
+      "name": "Ryan Cohen",
+      "linkedin": "https://www.linkedin.com/in/ryan-kcohen/",
+      "major": "Finance and Business"
+    },
+    {
+      "name": "Ryan Pink",
+      "linkedin": "https://www.linkedin.com/in/ryanspink/",
+      "major": "Political Science"
+    },
+    {
+      "name": "Ryan Rached",
+      "linkedin": "https://www.linkedin.com/in/ryanrached/",
+      "major": "Business"
+    },
+    {
+      "name": "Rylan Chandler",
+      "linkedin": "https://www.linkedin.com/in/rylan-chandler-9977a1202/",
+      "major": "Legal Studies, Finance, and Economics"
+    },
+    {
+      "name": "Sabrina Williams",
+      "linkedin": "https://www.linkedin.com/in/sabrina-williams-2287b1227/"
+    },
+    {
+      "name": "Sal Curto",
+      "linkedin": "https://www.linkedin.com/in/sal-curto-83605b32/"
+    },
+    {
+      "name": "Sam Deutsch",
+      "linkedin": "https://www.linkedin.com/in/samdeutsch/",
+      "major": "Business"
+    },
+    {
+      "name": "Samantha Geist",
+      "linkedin": "https://www.linkedin.com/in/samantha-e-geist/",
+      "major": "Business"
+    },
+    {
+      "name": "Samantha Gold"
+    },
+    {
+      "name": "Samantha Kurek"
+    },
+    {
+      "name": "Santiago Stebelski"
+    },
+    {
+      "name": "Sara Hernandez",
+      "linkedin": "https://www.linkedin.com/in/sara-hernandez-ramirez/",
+      "major": "Industrial and Systems Engineering"
+    },
+    {
+      "name": "Sawyer Bland",
+      "linkedin": "https://www.linkedin.com/in/sawyer-bland/",
+      "major": "Business"
+    },
+    {
+      "name": "Sean Kupperman",
+      "linkedin": "https://www.linkedin.com/in/sean-kupperman/",
+      "major": "Business"
+    },
+    {
+      "name": "Sofia Piniella"
+    },
+    {
+      "name": "Sol Almandoz",
+      "linkedin": "https://www.linkedin.com/in/sol-almandoz-leguia/",
+      "major": "Finance and Legal Studies"
+    },
+    {
+      "name": "Sophia Hibbert"
+    },
+    {
+      "name": "Sophia Ives",
+      "linkedin": "https://www.linkedin.com/in/sophia-ives-860b79282/",
+      "major": "International Studies and Quantitative Economics"
+    },
+    {
+      "name": "Sophie Greenfield",
+      "linkedin": "https://www.linkedin.com/in/sophie-greenfield/",
+      "major": "Finance"
+    },
+    {
+      "name": "Sotiris Efstathiou"
+    },
+    {
+      "name": "Spandana Batlapenumarthy"
+    },
+    {
+      "name": "Stephen Mikolajewski"
+    },
+    {
+      "name": "Summer Nelson",
+      "linkedin": "https://www.linkedin.com/in/summerlailanelson/",
+      "major": "Political Science and Broadcast Journalism"
+    },
+    {
+      "name": "Sydney Walker"
+    },
+    {
+      "name": "Tatiana Pina",
+      "linkedin": "https://www.linkedin.com/in/tatianapi%C3%B1a/",
+      "major": "Journalism, Public Relations, and Marketing"
+    },
+    {
+      "name": "Tatum Kocaj",
+      "linkedin": "https://www.linkedin.com/in/tatum-kocaj/"
+    },
+    {
+      "name": "Thaddeus LaSusa"
+    },
+    {
+      "name": "Thanh Van"
+    },
+    {
+      "name": "Thomas Byrnes",
+      "linkedin": "https://www.linkedin.com/in/thomas-byrnes/"
+    },
+    {
+      "name": "Tiolu Ladipo",
+      "linkedin": "https://www.linkedin.com/in/tiolu-ladipo/",
+      "major": "Neuroscience"
+    },
+    {
+      "name": "Tucker Kinney",
+      "linkedin": "https://www.linkedin.com/in/tucker-kinney-740735325/"
+    },
+    {
+      "name": "Tyler Balavender"
+    },
+    {
+      "name": "Tyler Houp",
+      "linkedin": "https://www.linkedin.com/in/tyler-houp-55748021b/"
+    },
+    {
+      "name": "Zach Haverty"
+    },
+    {
+      "name": "Zack Newman"
+    },
+    {
+      "name": "Zain Jafri",
+      "linkedin": "https://www.linkedin.com/in/zain-jafri-/",
+      "major": "Finance and Business Technology"
+    },
+    {
+      "name": "Zara Smith",
+      "linkedin": "https://www.linkedin.com/in/zara-smith0811/"
+    },
+    {
+      "name": "Zulhija Guliyeva",
+      "linkedin": "https://www.linkedin.com/in/zulhijaguliyeva/",
+      "major": "Finance, Business Analytics, and Computer Science"
+    }
+  ],
+  "nibs": []
+}

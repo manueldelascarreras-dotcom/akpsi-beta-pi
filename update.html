@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Update Your Profile | Alpha Kappa Psi Beta Pi</title>
+  <meta name="theme-color" content="#FBF8F3">
+  <link rel="icon" href="images/crest.png" type="image/png">
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem("akpsi-theme") || "pro"; } catch (e) { document.documentElement.dataset.theme = "pro"; }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="sections.css" />
+  <style>
+    .name-search { position: relative; }
+    .name-results { list-style: none; margin-top: 8px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--white); }
+    .name-results button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--border); transition: background .15s; }
+    .name-results li:last-child button { border-bottom: 0; }
+    .name-results button:hover, .name-results button:focus-visible { background: var(--bg); outline: none; }
+    .name-results img, .name-results .ini { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; display: grid; place-items: center; background: var(--bg-2); color: var(--navy); font-weight: 600; font-size: .8rem; }
+    .name-results b { font-weight: 600; color: var(--ink); }
+    .name-results small { display: block; color: var(--text-muted); font-size: .78rem; }
+    .name-results .none { padding: 14px; color: var(--text-muted); font-size: .9rem; }
+    .chosen { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: var(--bg-2); }
+    .chosen img, .chosen .ini { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; display: grid; place-items: center; background: var(--white); color: var(--navy); font-family: var(--font-heading); font-size: 1.3rem; }
+    .chosen b { display: block; font-family: var(--font-heading); font-weight: 400; font-size: 1.5rem; color: var(--navy); line-height: 1.1; }
+    .chosen span { font-size: .8rem; color: var(--text-muted); }
+    .chosen button { margin-left: auto; font-size: .82rem; font-weight: 600; color: var(--accent); }
+    .code-field input { letter-spacing: .2em; text-transform: uppercase; max-width: 220px; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="main-nav" class="on-dark" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo"><img src="images/crest.png" alt="" />Beta Pi</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="philanthropy.html">Philanthropy</a></li>
+      <li><a href="members.html">Members</a></li>
+      <li><a href="events.html">Events</a></li>
+      <li><a href="apply.html" class="nav-cta">Apply</a></li>
+    </ul>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div id="mobile-menu" aria-label="Site navigation">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="philanthropy.html">Philanthropy</a>
+    <a href="members.html">Members</a>
+    <a href="events.html">Events</a>
+    <a href="apply.html">Apply</a>
+  </div>
+
+  <header class="page-hero apply-hero">
+    <div class="hero-bg bg-pro" aria-hidden="true"><span class="silk s1"></span><span class="silk s2"></span><span class="silk s3"></span></div>
+    <div class="hero-bg bg-vice" aria-hidden="true"><div class="vice-grid"></div></div>
+    <p class="hero-eyebrow">Brothers Only</p>
+    <h1 class="hero-title">Update your <em>profile</em></h1>
+    <div class="hero-rule" aria-hidden="true"></div>
+    <p class="hero-sub">Add your headshot and LinkedIn so your card on the Members page is complete. Takes about a minute.</p>
+  </header>
+
+  <section class="apply-section">
+    <div class="container">
+      <form class="apply-form" id="updForm" novalidate>
+        <fieldset class="form-block">
+          <legend><span class="n">01</span>Find your name</legend>
+          <div id="pickStep" class="name-search">
+            <label class="field"><span>Start typing your name</span><input id="nameQ" autocomplete="off" placeholder="e.g. Ace Berenyi" /></label>
+            <ul class="name-results" id="nameResults" hidden></ul>
+          </div>
+          <div class="chosen" id="chosen" hidden></div>
+        </fieldset>
+
+        <div id="details" hidden>
+          <fieldset class="form-block">
+            <legend><span class="n">02</span>Your headshot</legend>
+            <label class="drop" data-drop="photo" style="max-width:360px">
+              <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" />
+              <img class="drop-preview" alt="" hidden />
+              <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
+              <span class="drop-title">Upload a professional headshot</span>
+              <span class="drop-hint">JPG or PNG, up to 10 MB. Square photos look best.</span>
+              <span class="drop-file"></span>
+            </label>
+            <div class="headshot-guide">Business professional attire, a plain background, and your face centered. Your LinkedIn profile photo works great: open your profile, click your photo, and save it.</div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend><span class="n">03</span>Your details</legend>
+            <div class="grid-2">
+              <label class="field" style="grid-column:1/-1"><span>LinkedIn profile URL</span><input name="linkedin" type="url" placeholder="https://www.linkedin.com/in/your-name" /></label>
+              <label class="field"><span>Major</span><input name="major" /></label>
+              <label class="field"><span>Minor <i>optional</i></span><input name="minor" /></label>
+              <label class="field"><span>Pledge class</span><input name="class" placeholder="e.g. Beta Alpha" /></label>
+              <label class="field"><span>Graduation year</span><input name="year" inputmode="numeric" maxlength="4" placeholder="2028" /></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend><span class="n">04</span>Chapter code</legend>
+            <label class="field code-field"><span>Code from the e-board <b>*</b></span><input name="code" autocomplete="off" required /></label>
+          </fieldset>
+
+          <p class="form-error" id="formError" role="alert" hidden></p>
+          <div class="submit-row">
+            <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">Update My Profile</button>
+            <div class="progress" id="progress" hidden><span></span></div>
+          </div>
+        </div>
+      </form>
+
+      <div class="apply-done" id="done" hidden>
+        <div class="done-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <h2>You're all <em>set.</em></h2>
+        <p id="doneText">Your profile is updated on the Members page.</p>
+        <div class="cta-actions" style="justify-content:center">
+          <a href="members.html#brothers" class="btn btn-primary">See the Members page</a>
+          <a href="update.html" class="btn btn-ghost">Update someone else</a>
+        </div>
+      </div>
+
+      <div class="apply-done" id="off" hidden>
+        <h2>Profile updates are <em>paused.</em></h2>
+        <p>Check with the e-board for when updates open again.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-id">
+        <img src="images/crest.png" alt="" />
+        <div>
+          <p class="footer-brand">Alpha Kappa Psi <em>Beta Pi</em></p>
+          <p class="footer-sub">University of Miami · Coral Gables, FL · <a data-link="email" href="#"></a></p>
+        </div>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="philanthropy.html">Philanthropy</a>
+        <a href="members.html">Members</a>
+        <a href="events.html">Events</a>
+        <a href="apply.html">Apply</a>
+        <a data-link="instagram" href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a data-link="tiktok" href="#" target="_blank" rel="noopener noreferrer">TikTok</a>
+      </nav>
+    </div>
+    <p class="footer-copy">&copy; <span data-year></span> Beta Pi Chapter of Alpha Kappa Psi. All rights reserved.</p>
+  </footer>
+
+  <script src="site.js"></script>
+  <script>
+    const form = $('updForm');
+    let roster = [], chosen = null;
+
+    fetch('/api/update/config').then(r => r.json()).then(c => {
+      if (!c.enabled) { form.hidden = true; $('off').hidden = false; }
+    });
+
+    /* One entry per person, even if they appear in several groups */
+    getJSON('members').then(m => {
+      const map = new Map();
+      for (const g of ['eboard', 'pledgeEducators', 'brothers', 'nibs']) for (const p of m[g] || []) {
+        const k = p.name.trim().toLowerCase();
+        map.set(k, { ...(map.get(k) || {}), ...p, role: map.get(k)?.role || p.role });
+      }
+      roster = [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+    });
+
+    const fold = s => s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const avatar = p => p.photo ? `<img src="${esc(p.photo)}" alt="">` : `<span class="ini">${esc(initials(p.name))}</span>`;
+
+    $('nameQ').addEventListener('input', e => {
+      const q = fold(e.target.value.trim());
+      const box = $('nameResults');
+      if (q.length < 2) { box.hidden = true; return; }
+      const words = q.split(/\s+/);
+      const hits = roster.filter(p => words.every(w => fold(p.name).includes(w))).slice(0, 8);
+      box.hidden = false;
+      box.innerHTML = hits.length
+        ? hits.map(p => `<li><button type="button" data-name="${esc(p.name)}">${avatar(p)}<span><b>${esc(p.name)}</b><small>${esc([p.role, p.major, p.class && p.class + ' Class'].filter(Boolean).join(' · ') || 'Beta Pi')}</small></span></button></li>`).join('')
+        : `<li class="none">No match. If you're not on the roster yet, contact the e-board.</li>`;
+    });
+
+    $('nameResults').addEventListener('click', e => {
+      const b = e.target.closest('[data-name]'); if (!b) return;
+      choose(roster.find(p => p.name === b.dataset.name));
+    });
+
+    function choose(p) {
+      chosen = p;
+      $('pickStep').hidden = true;
+      $('chosen').hidden = false;
+      $('chosen').innerHTML = `${avatar(p)}<div><b>${esc(p.name)}</b><span>${p.photo ? 'Has a photo' : 'No photo yet'} · ${p.linkedin ? 'LinkedIn added' : 'No LinkedIn yet'}</span></div><button type="button" id="notMe">Not you?</button>`;
+      $('notMe').onclick = () => { chosen = null; $('chosen').hidden = true; $('details').hidden = true; $('pickStep').hidden = false; $('nameQ').value = ''; $('nameResults').hidden = true; $('nameQ').focus(); };
+      for (const k of ['linkedin', 'major', 'minor', 'class', 'year']) form.elements[k].value = p[k] || '';
+      $('details').hidden = false;
+      $('details').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* Photo picker with preview and drag and drop */
+    const drop = form.querySelector('.drop'), photoIn = form.elements.photo;
+    const okPhoto = f => f && ['image/jpeg', 'image/png', 'image/webp'].includes(f.type) && f.size <= 10 * 1024 * 1024;
+    const showPhoto = () => {
+      const f = photoIn.files[0];
+      drop.classList.toggle('filled', !!f); drop.classList.toggle('bad', !!f && !okPhoto(f));
+      drop.querySelector('.drop-file').textContent = f ? (okPhoto(f) ? f.name : 'Please choose a JPG, PNG, or WEBP under 10 MB.') : '';
+      const prev = drop.querySelector('.drop-preview');
+      if (f && okPhoto(f)) { prev.src = URL.createObjectURL(f); prev.hidden = false; } else prev.hidden = true;
+    };
+    photoIn.addEventListener('change', showPhoto);
+    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+    drop.addEventListener('drop', e => { if (e.dataTransfer.files[0]) { photoIn.files = e.dataTransfer.files; showPhoto(); } });
+
+    const showError = (msg, field) => {
+      $('formError').textContent = msg; $('formError').hidden = false;
+      const el = field && form.elements[field];
+      if (el) { el.closest('.field, .drop')?.classList.add('invalid'); el.focus({ preventScroll: true }); }
+      $('formError').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    form.addEventListener('input', e => e.target.closest('.field, .drop')?.classList.remove('invalid'));
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      $('formError').hidden = true;
+      if (!chosen) return showError('Find and select your name first.');
+      if (photoIn.files[0] && !okPhoto(photoIn.files[0])) return showError('Please choose a JPG, PNG, or WEBP photo under 10 MB.', 'photo');
+      if (!form.elements.code.value.trim()) return showError('Enter the chapter code from the e-board.', 'code');
+
+      const fd = new FormData(form);
+      fd.set('name', chosen.name);
+      if (!photoIn.files[0]) fd.delete('photo');
+      const xhr = new XMLHttpRequest(), btn = $('submitBtn'), bar = $('progress');
+      btn.disabled = true; btn.textContent = 'Updating…'; bar.hidden = false;
+      xhr.upload.onprogress = ev => { if (ev.lengthComputable) bar.firstElementChild.style.width = `${ev.loaded / ev.total * 100}%`; };
+      xhr.onload = () => {
+        let d = {}; try { d = JSON.parse(xhr.responseText); } catch {}
+        btn.disabled = false; btn.textContent = 'Update My Profile'; bar.hidden = true;
+        if (xhr.status === 200 && d.ok) {
+          form.hidden = true; $('done').hidden = false;
+          if (d.status === 'pending') $('doneText').textContent = 'Thanks! The e-board will review your update and publish it soon.';
+          scrollTo({ top: document.querySelector('.apply-section').offsetTop - 80, behavior: 'smooth' });
+        } else showError(d.error || 'Something went wrong. Please try again.', d.field);
+      };
+      xhr.onerror = () => { btn.disabled = false; btn.textContent = 'Update My Profile'; bar.hidden = true; showError('Could not reach the server. Check your connection and try again.'); };
+      xhr.open('POST', '/api/update');
+      xhr.send(fd);
+    });
+  </script>
+</body>
+</html>

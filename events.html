@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Events | Alpha Kappa Psi Beta Pi</title>
+  <meta name="description" content="Upcoming events from the Beta Pi chapter of Alpha Kappa Psi at the University of Miami: rush, professional development, philanthropy, and brotherhood.">
+  <meta name="theme-color" content="#FBF8F3">
+  <link rel="icon" href="images/crest.png" type="image/png">
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem("akpsi-theme") || "pro"; } catch (e) { document.documentElement.dataset.theme = "pro"; }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="sections.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="main-nav" class="on-dark" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo"><img src="images/crest.png" alt="" />Beta Pi</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="philanthropy.html">Philanthropy</a></li>
+      <li><a href="members.html">Members</a></li>
+      <li><a href="events.html" aria-current="page">Events</a></li>
+      <li><a href="apply.html" class="nav-cta">Apply</a></li>
+    </ul>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div id="mobile-menu" aria-label="Site navigation">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="philanthropy.html">Philanthropy</a>
+    <a href="members.html">Members</a>
+    <a href="events.html">Events</a>
+    <a href="apply.html">Apply</a>
+  </div>
+
+  <!-- HERO -->
+  <header class="page-hero events-hero">
+    <div class="hero-bg bg-pro" aria-hidden="true">
+      <span class="silk s1"></span><span class="silk s2"></span><span class="silk s3"></span>
+    </div>
+    <div class="hero-bg bg-vice" aria-hidden="true"><div class="vice-grid"></div></div>
+
+    <p class="hero-eyebrow">Calendar</p>
+    <h1 class="hero-title">Beta Pi <em>events</em></h1>
+    <div class="hero-rule" aria-hidden="true"></div>
+    <p class="hero-sub">Rush, professional development, philanthropy, and brotherhood. Here's what's coming up.</p>
+  </header>
+
+  <!-- WEEK VIEW -->
+  <section id="events" aria-labelledby="events-heading">
+    <div class="container">
+      <div class="events-head reveal">
+        <div class="section-header">
+          <p class="section-label">Week by week</p>
+          <h2 class="section-title" id="events-heading"><span id="weekLabel">This</span> <em>week</em></h2>
+        </div>
+        <div class="week-nav">
+          <button type="button" id="weekPrev" aria-label="Previous week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <span class="week-range" id="weekRange" aria-live="polite"></span>
+          <button type="button" id="weekNext" aria-label="Next week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+          <button type="button" class="week-today" id="weekToday" hidden>Today</button>
+        </div>
+      </div>
+      <div class="week-strip reveal" id="weekStrip" aria-hidden="true"></div>
+      <div class="week-list" id="weekList"></div>
+    </div>
+  </section>
+
+  <!-- ALL EVENTS -->
+  <section aria-labelledby="all-heading" style="padding-top: 0">
+    <div class="container">
+      <div class="events-head reveal">
+        <div class="section-header">
+          <p class="section-label">Everything ahead</p>
+          <h2 class="section-title" id="all-heading"><span id="allLabel">Upcoming</span> <em>events</em></h2>
+        </div>
+        <div class="segmented" id="allTabs" role="tablist" aria-label="Upcoming or past events">
+          <button role="tab" data-when="upcoming" aria-selected="true">Upcoming</button>
+          <button role="tab" data-when="past" aria-selected="false">Past</button>
+        </div>
+      </div>
+      <div id="allEvents" role="tabpanel"></div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section aria-label="Stay in the loop" style="padding-top: 0">
+    <div class="container">
+      <div class="cta-band reveal">
+        <div>
+          <h2>Never miss an <em>event.</em></h2>
+          <p>We post every event and rush update on Instagram.</p>
+        </div>
+        <div class="cta-actions">
+          <a data-link="instagram" href="#" class="btn btn-white" target="_blank" rel="noopener noreferrer">Follow @umakpsi</a>
+          <a href="apply.html" class="btn btn-outline-white">Apply</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-id">
+        <img src="images/crest.png" alt="" />
+        <div>
+          <p class="footer-brand">Alpha Kappa Psi <em>Beta Pi</em></p>
+          <p class="footer-sub">University of Miami · Coral Gables, FL · <a data-link="email" href="#"></a></p>
+        </div>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="philanthropy.html">Philanthropy</a>
+        <a href="members.html">Members</a>
+        <a href="apply.html">Apply</a>
+        <a data-link="instagram" href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a data-link="tiktok" href="#" target="_blank" rel="noopener noreferrer">TikTok</a>
+      </nav>
+    </div>
+    <div class="footer-copy"><div class="theme-switch light" role="group" aria-label="Site theme"></div></div>
+    <p class="footer-copy">&copy; <span data-year></span> Beta Pi Chapter of Alpha Kappa Psi. All rights reserved.</p>
+  </footer>
+
+  <script src="site.js"></script>
+  <script src="sections.js"></script>
+</body>
+</html>

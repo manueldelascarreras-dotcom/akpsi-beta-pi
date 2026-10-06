@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Philanthropy | Alpha Kappa Psi Beta Pi</title>
+  <meta name="description" content="Beta Pi's philanthropy is suicide prevention and mental health awareness. Learn how we give back and how to support a friend. Call or text 988 for help, 24/7.">
+  <meta name="theme-color" content="#FBF8F3">
+  <link rel="icon" href="images/crest.png" type="image/png">
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem("akpsi-theme") || "pro"; } catch (e) { document.documentElement.dataset.theme = "pro"; }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="sections.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="main-nav" class="on-dark" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo"><img src="images/crest.png" alt="" />Beta Pi</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="philanthropy.html" aria-current="page">Philanthropy</a></li>
+      <li><a href="members.html">Members</a></li>
+      <li><a href="events.html">Events</a></li>
+      <li><a href="apply.html" class="nav-cta">Apply</a></li>
+    </ul>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div id="mobile-menu" aria-label="Site navigation">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="philanthropy.html">Philanthropy</a>
+    <a href="members.html">Members</a>
+    <a href="events.html">Events</a>
+    <a href="apply.html">Apply</a>
+  </div>
+
+  <!-- HERO: the philanthropy section, full screen -->
+  <section id="philanthropy" aria-labelledby="phil-heading">
+    <div class="hero-bg bg-pro" aria-hidden="true">
+      <span class="silk s1"></span><span class="silk s2"></span><span class="silk s3"></span>
+      <svg class="folds" viewBox="0 0 1440 900" preserveAspectRatio="none">
+        <defs>
+          <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+          <linearGradient id="sheen" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#C9DAF2" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        </defs>
+        <g fill="none" stroke="url(#sheen)" filter="url(#soft)">
+          <path d="M-100 220 C 400 360, 900 80, 1540 300" stroke-width="12"/>
+          <path d="M-100 620 C 300 480, 1000 820, 1540 560" stroke-width="16" opacity=".6"/>
+        </g>
+        <path d="M-100 620 C 300 480, 1000 820, 1540 560" fill="none" stroke="#DCE8F8" stroke-opacity=".22" stroke-width="1.2"/>
+      </svg>
+    </div>
+    <div class="hero-bg bg-vice" aria-hidden="true"><div class="vice-grid"></div></div>
+
+    <div class="container">
+      <div class="phil-top">
+        <div class="reveal">
+          <p class="section-label">The Philanthropy</p>
+          <p class="phil-cause-pill">
+            <svg class="ribbon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-2.2 0-4 1.8-4 4 0 1.6.8 3.3 2 5l-5 9 3 1 4-7 4 7 3-1-5-9c1.2-1.7 2-3.4 2-5 0-2.2-1.8-4-4-4zm0 2c1.1 0 2 .9 2 2 0 1-.6 2.3-2 4.3-1.4-2-2-3.3-2-4.3 0-1.1.9-2 2-2z"/></svg>
+            <span id="philCause"></span>
+          </p>
+          <h1 class="phil-title" id="phil-heading">No one should feel <em>alone.</em></h1>
+          <div class="phil-rule" aria-hidden="true"></div>
+          <p class="phil-copy" id="philBlurb"></p>
+          <div class="phil-cards" id="philInitiatives"></div>
+        </div>
+        <aside class="help-card reveal" aria-label="Crisis support">
+          <p class="kicker">Need to talk? Help is here 24/7</p>
+          <p class="help-num">9<em>8</em>8</p>
+          <div class="phil-rule" aria-hidden="true"></div>
+          <p>Call or text the 988 Suicide &amp; Crisis Lifeline. Free, confidential, and available any time.</p>
+          <div class="help-actions">
+            <a href="tel:988" class="btn btn-white">Call 988</a>
+            <a href="sms:988" class="btn btn-outline-white">Text 988</a>
+          </div>
+          <p class="help-more" id="helpMore"></p>
+        </aside>
+      </div>
+    </div>
+    <div class="phil-ticker" aria-hidden="true"><div class="marquee-track" id="philTicker"></div></div>
+  </section>
+
+  <!-- WHY -->
+  <section aria-labelledby="why-heading">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label" id="why-heading">Why it matters</p>
+      </div>
+      <div class="phil-why reveal"><p id="philWhy"></p></div>
+    </div>
+  </section>
+
+  <!-- HOW TO HELP A FRIEND -->
+  <section aria-labelledby="support-heading" style="padding-top: 0">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Be there</p>
+        <h2 class="section-title" id="support-heading">How to support <em>a friend.</em></h2>
+        <p class="section-subtitle">You don't need to be an expert to help. Small steps can make a real difference.</p>
+      </div>
+      <ol class="support-steps reveal" id="supportSteps"></ol>
+    </div>
+  </section>
+
+  <!-- EVENTS -->
+  <section aria-labelledby="phil-events-heading" style="padding-top: 0">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Get involved</p>
+        <h2 class="section-title" id="phil-events-heading">Upcoming <em>philanthropy events</em></h2>
+      </div>
+      <div class="phil-events reveal" id="philEvents"></div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section aria-label="Support the cause" style="padding-top: 0">
+    <div class="container">
+      <div class="cta-band reveal">
+        <div>
+          <h2>Help us make a <em>difference.</em></h2>
+          <p>Come to an event, share our posts, or check in on someone today.</p>
+        </div>
+        <div class="cta-actions">
+          <a href="#" id="donateBtn" class="btn btn-white" target="_blank" rel="noopener noreferrer">Donate</a>
+          <a data-link="instagram" href="#" class="btn btn-outline-white" target="_blank" rel="noopener noreferrer">Follow Our Events</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-id">
+        <img src="images/crest.png" alt="" />
+        <div>
+          <p class="footer-brand">Alpha Kappa Psi <em>Beta Pi</em></p>
+          <p class="footer-sub">University of Miami · Coral Gables, FL · <a data-link="email" href="#"></a></p>
+        </div>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="members.html">Members</a>
+        <a href="events.html">Events</a>
+        <a href="apply.html">Apply</a>
+        <a data-link="instagram" href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a data-link="tiktok" href="#" target="_blank" rel="noopener noreferrer">TikTok</a>
+      </nav>
+    </div>
+    <div class="footer-copy"><div class="theme-switch light" role="group" aria-label="Site theme"></div></div>
+    <p class="footer-copy">&copy; <span data-year></span> Beta Pi Chapter of Alpha Kappa Psi. All rights reserved.</p>
+  </footer>
+
+  <script src="site.js"></script>
+  <script src="sections.js"></script>
+</body>
+</html>

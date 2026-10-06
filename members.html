@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Members | Alpha Kappa Psi Beta Pi</title>
+  <meta name="description" content="Meet the executive board, pledge educators, brothers, and new initiate brothers of Alpha Kappa Psi Beta Pi at the University of Miami.">
+  <meta name="theme-color" content="#FBF8F3">
+  <link rel="icon" href="images/crest.png" type="image/png">
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem("akpsi-theme") || "pro"; } catch (e) { document.documentElement.dataset.theme = "pro"; }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ─── HEADER ───────────────────────────────────── */
+    .members-hero {
+      padding: 110px 40px 40px;
+      text-align: center;
+    }
+    .members-head {
+      position: relative;
+      padding: 54px 0 34px;
+      overflow: hidden;
+    }
+    .members-head::after {
+      content: '';
+      position: absolute; left: 50%; bottom: 0;
+      width: min(640px, 100%); height: 1px;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: .45;
+    }
+    .members-head::before {
+      content: '';
+      position: absolute;
+      left: 50%; top: 20px;
+      width: 520px; height: 520px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: var(--accent-grad);
+      opacity: .13;
+      -webkit-mask: linear-gradient(#000 0 50%, transparent 0) top / 100% 100% no-repeat,
+                    repeating-linear-gradient(#000 0 16px, transparent 16px 26px);
+      mask: linear-gradient(#000 0 50%, transparent 0) top / 100% 100% no-repeat,
+            repeating-linear-gradient(#000 0 16px, transparent 16px 26px);
+      pointer-events: none;
+    }
+    .members-head > * { position: relative; }
+    .members-title {
+      font-family: var(--font-heading);
+      font-weight: 400;
+      font-size: clamp(3.2rem, 8vw, 6rem);
+      line-height: 1;
+      color: var(--navy);
+      animation: fadeUp .7s ease both;
+    }
+    .rotator {
+      display: block;
+      min-height: 1.3em;
+      margin-top: 8px;
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: clamp(1.8rem, 4.4vw, 3rem);
+      color: var(--accent);
+      animation: fadeUp .7s .1s ease both;
+    }
+    .rotator .caret {
+      display: inline-block;
+      width: 2px; height: .9em;
+      margin-left: 4px;
+      vertical-align: -0.08em;
+      background: var(--accent);
+      animation: blink 1s steps(1) infinite;
+    }
+
+    /* ─── CONTROLS ─────────────────────────────────── */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      margin-top: 40px;
+      animation: fadeUp .7s .2s ease both;
+    }
+    .tab-desc { font-size: .92rem; color: var(--text-mid); font-weight: 300; min-height: 1.5em; }
+
+    .tools {
+      display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap;
+    }
+    .search {
+      position: relative;
+      width: 280px; max-width: 100%;
+    }
+    .search svg { position: absolute; left: 14px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); color: var(--text-muted); }
+    .search input {
+      width: 100%;
+      padding: 11px 16px 11px 40px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      font-size: .88rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .search input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(18,48,91,.1); }
+    .major-select {
+      padding: 11px 36px 11px 16px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A5566' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;
+      appearance: none;
+      font-family: inherit;
+      font-size: .88rem;
+      color: var(--ink);
+      cursor: pointer;
+      outline: none;
+    }
+    .major-select:focus { border-color: var(--navy); }
+    .tools[hidden] { display: none; }
+
+    /* ─── GRID ─────────────────────────────────────── */
+    #roster { padding-top: 30px; }
+    .empty { grid-column: 1 / -1; padding: 60px 0; text-align: center; color: var(--text-muted); font-style: italic; }
+
+    /* ─── JOIN CTA ─────────────────────────────────── */
+    #join { padding-top: 0; }
+    .join-card {
+      display: flex; align-items: center; justify-content: space-between; gap: 30px; flex-wrap: wrap;
+      padding: 48px 56px;
+      border-radius: 24px;
+      background: var(--navy);
+      color: var(--bg);
+      position: relative; overflow: hidden;
+    }
+    .join-card::after {
+      content: ''; position: absolute; right: -80px; top: -80px; width: 280px; height: 280px; border-radius: 50%;
+      background: var(--accent-grad); opacity: .35;
+      -webkit-mask: repeating-linear-gradient(#000 0 10px, transparent 10px 18px);
+      mask: repeating-linear-gradient(#000 0 10px, transparent 10px 18px);
+    }
+    .join-card > * { position: relative; z-index: 1; }
+    .join-card h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; }
+    .join-card h2 em { font-style: italic; color: var(--peach); }
+    .join-card p { opacity: .75; font-weight: 300; margin-top: 6px; }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    @media (max-width: 600px) {
+      .members-hero { padding: 90px 16px 20px; }
+      .members-head { padding: 40px 0 26px; }
+      .members-head::before { width: 340px; height: 340px; }
+      .join-card { padding: 36px 24px; }
+      .join-card .btn { width: 100%; }
+      .search { width: 100%; }
+      .tools { width: 100%; }
+      .major-select { flex: 1; min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="main-nav" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo"><img src="images/crest.png" alt="" />Beta Pi</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="philanthropy.html">Philanthropy</a></li>
+      <li><a href="members.html" aria-current="page">Members</a></li>
+      <li><a href="events.html">Events</a></li>
+      <li><a href="apply.html" class="nav-cta">Apply</a></li>
+    </ul>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div id="mobile-menu" aria-label="Site navigation">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="philanthropy.html">Philanthropy</a>
+    <a href="members.html">Members</a>
+    <a href="events.html">Events</a>
+    <a href="apply.html">Apply</a>
+  </div>
+
+  <!-- HEADER + TABS -->
+  <header class="members-hero">
+    <div class="members-head">
+      <h1 class="members-title">Our Members</h1>
+      <span class="rotator" aria-live="polite"><span id="rotWord">business leaders</span><span class="caret" aria-hidden="true"></span></span>
+    </div>
+
+    <div class="controls">
+      <div class="segmented" id="tabs" role="tablist" aria-label="Member groups"></div>
+      <p class="tab-desc" id="tabDesc"></p>
+      <div class="tools" id="tools" hidden>
+        <label class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="search" placeholder="Search by name" aria-label="Search members" />
+        </label>
+        <select class="major-select" id="majorFilter" aria-label="Filter by major"></select>
+      </div>
+    </div>
+  </header>
+
+  <!-- ROSTER -->
+  <section id="roster" aria-live="polite">
+    <div class="container">
+      <div class="member-grid" id="grid" role="tabpanel"></div>
+    </div>
+  </section>
+
+  <!-- JOIN -->
+  <section id="join">
+    <div class="container">
+      <div class="join-card reveal">
+        <div>
+          <h2>Want to see your name <em>here?</em></h2>
+          <p>Recruitment opens every fall and spring. All majors welcome.</p>
+        </div>
+        <a href="index.html#apply" class="btn btn-white">Apply to Beta Pi</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-id">
+        <img src="images/crest.png" alt="" />
+        <div>
+          <p class="footer-brand">Alpha Kappa Psi <em>Beta Pi</em></p>
+          <p class="footer-sub">University of Miami · Coral Gables, FL · <a data-link="email" href="#"></a></p>
+        </div>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="philanthropy.html">Philanthropy</a>
+        <a href="events.html">Events</a>
+        <a href="apply.html">Apply</a>
+        <a data-link="instagram" href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a data-link="tiktok" href="#" target="_blank" rel="noopener noreferrer">TikTok</a>
+      </nav>
+    </div>
+    <div class="footer-copy"><div class="theme-switch light" role="group" aria-label="Site theme"></div></div>
+    <p class="footer-copy">&copy; <span data-year></span> Beta Pi Chapter of Alpha Kappa Psi. All rights reserved.</p>
+  </footer>
+
+  <script src="site.js"></script>
+  <script>
+    /* ── Rotating subtitle (typewriter) ── */
+    (function () {
+      const words = ['business leaders', 'future bankers', 'consultants', 'entrepreneurs', 'marketers', 'engineers', 'Miami Hurricanes'];
+      const el = $('rotWord');
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      let w = 0, i = words[0].length, deleting = true;
+      const tick = () => {
+        const word = words[w];
+        if (deleting) {
+          i--;
+          if (i === 0) { deleting = false; w = (w + 1) % words.length; }
+        } else {
+          i++;
+          if (i === words[w].length) { deleting = true; el.textContent = words[w]; return setTimeout(tick, 2200); }
+        }
+        el.textContent = words[w].slice(0, i) || ' ';
+        setTimeout(tick, deleting ? 40 : 75);
+      };
+      setTimeout(tick, 2400);
+    })();
+
+    /* ── Roster tabs ── */
+    const TABS = [
+      { id: 'eboard',    key: 'eboard',          label: 'E-Board',          desc: 'The executive board leading Beta Pi this year.' },
+      { id: 'educators', key: 'pledgeEducators', label: 'Pledge Educators', desc: 'The brothers who guide each new class through the pledge process.' },
+      { id: 'brothers',  key: 'brothers',        label: 'Brothers',         desc: 'Every active brother of the Beta Pi chapter.', tools: true },
+      { id: 'nibs',      key: 'nibs',            label: 'NIBs',             desc: 'New Initiate Brothers, our newest pledge class.', tools: true },
+    ];
+
+    getJSON('members').then(data => {
+      let active = TABS.find(t => t.id === location.hash.slice(1)) || TABS[0];
+      const tabsEl = $('tabs'), grid = $('grid'), search = $('search'), majorFilter = $('majorFilter');
+      /* "Finance, Economics" / "Finance & Economics" / "Finance and Economics" count as two majors */
+      const majorsOf = m => String(m.major || '').split(/\s*(?:,|&|\/|\band\b)\s*/i).map(x => x.trim()).filter(Boolean);
+
+      tabsEl.innerHTML = TABS.map(t => `
+        <button role="tab" id="tab-${t.id}" data-id="${t.id}" aria-controls="grid">
+          ${t.label}<span class="count">${(data[t.key] || []).length}</span>
+        </button>`).join('');
+      const buttons = [...tabsEl.querySelectorAll('button')];
+
+      const render = () => {
+        const q = search.value.trim().toLowerCase();
+        const major = majorFilter.value;
+        let list = [...(data[active.key] || [])];
+        if (active.tools) {
+          list.sort((a, b) => a.name.localeCompare(b.name));
+          list = list.filter(m =>
+            (!major || majorsOf(m).includes(major)) &&
+            (!q || m.name.toLowerCase().includes(q)));
+        }
+        grid.innerHTML = list.length
+          ? list.map((m, i) => memberCard(m).replace('class="member-card"', `class="member-card" style="animation-delay:${Math.min(i, 12) * 35}ms"`)).join('')
+          : `<p class="empty">No members match that search.</p>`;
+      };
+
+      const select = (tab, focus) => {
+        active = tab;
+        buttons.forEach(b => {
+          const on = b.dataset.id === tab.id;
+          b.setAttribute('aria-selected', on);
+          b.tabIndex = on ? 0 : -1;
+          if (on && focus) b.focus();
+          if (on) {
+            /* Keep the active tab centered when the bar scrolls on narrow screens */
+            const center = () => {
+              const bar = tabsEl.getBoundingClientRect(), r = b.getBoundingClientRect();
+              tabsEl.scrollBy({ left: r.left - bar.left - (bar.width - r.width) / 2, behavior: focus ? 'smooth' : 'auto' });
+            };
+            requestAnimationFrame(center);
+            document.fonts?.ready.then(center);
+          }
+        });
+        grid.setAttribute('aria-labelledby', 'tab-' + tab.id);
+        $('tabDesc').textContent = tab.desc;
+        $('tools').hidden = !tab.tools;
+        search.value = '';
+        const counts = {};
+        (data[tab.key] || []).forEach(m => majorsOf(m).forEach(mj => counts[mj] = (counts[mj] || 0) + 1));
+        majorFilter.innerHTML = `<option value="">All majors</option>` + Object.keys(counts).sort()
+          .map(mj => `<option value="${esc(mj)}">${esc(mj)} (${counts[mj]})</option>`).join('');
+        majorFilter.hidden = Object.keys(counts).length < 2;
+        history.replaceState(null, '', '#' + tab.id);
+        render();
+      };
+
+      tabsEl.addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (b) select(TABS.find(t => t.id === b.dataset.id));
+      });
+      tabsEl.addEventListener('keydown', e => {
+        if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+        const i = TABS.indexOf(active) + (e.key === 'ArrowRight' ? 1 : -1);
+        select(TABS[(i + TABS.length) % TABS.length], true);
+      });
+      search.addEventListener('input', render);
+      majorFilter.addEventListener('change', render);
+      addEventListener('hashchange', () => {
+        const t = TABS.find(t => t.id === location.hash.slice(1));
+        if (t && t !== active) select(t);
+      });
+
+      select(active);
+    });
+  </script>
+</body>
+</html>

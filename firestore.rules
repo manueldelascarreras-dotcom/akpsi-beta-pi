@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Public site content (site, members, events, gallery). Only the API function writes it.
+    match /content/{name} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Everything else (applications, CMS login, settings, backups) is server-only.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

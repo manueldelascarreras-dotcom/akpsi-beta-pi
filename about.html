@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us | Alpha Kappa Psi Beta Pi</title>
+  <meta name="description" content="About the Beta Pi chapter of Alpha Kappa Psi at the University of Miami: our story, our core values, and what we stand for.">
+  <meta name="theme-color" content="#FBF8F3">
+  <link rel="icon" href="images/crest.png" type="image/png">
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem("akpsi-theme") || "pro"; } catch (e) { document.documentElement.dataset.theme = "pro"; }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="sections.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="main-nav" class="on-dark" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo"><img src="images/crest.png" alt="" />Beta Pi</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html" aria-current="page">About</a></li>
+      <li><a href="philanthropy.html">Philanthropy</a></li>
+      <li><a href="members.html">Members</a></li>
+      <li><a href="events.html">Events</a></li>
+      <li><a href="apply.html" class="nav-cta">Apply</a></li>
+    </ul>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div id="mobile-menu" aria-label="Site navigation">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="philanthropy.html">Philanthropy</a>
+    <a href="members.html">Members</a>
+    <a href="events.html">Events</a>
+    <a href="apply.html">Apply</a>
+  </div>
+
+  <!-- HERO -->
+  <header class="page-hero">
+    <div class="hero-bg bg-pro" aria-hidden="true">
+      <span class="silk s1"></span><span class="silk s2"></span><span class="silk s3"></span>
+      <svg class="folds" viewBox="0 0 1440 900" preserveAspectRatio="none">
+        <defs>
+          <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+          <linearGradient id="sheen" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#C9DAF2" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        </defs>
+        <g fill="none" stroke="url(#sheen)" filter="url(#soft)">
+          <path d="M-100 300 C 300 180, 600 520, 1540 260" stroke-width="10"/>
+          <path d="M-100 560 C 400 420, 900 760, 1540 520" stroke-width="16" opacity=".6"/>
+        </g>
+        <path d="M-100 560 C 400 420, 900 760, 1540 520" fill="none" stroke="#DCE8F8" stroke-opacity=".25" stroke-width="1.2"/>
+      </svg>
+    </div>
+    <div class="hero-bg bg-vice" aria-hidden="true"><div class="vice-grid"></div></div>
+
+    <p class="hero-eyebrow">About Beta Pi</p>
+    <h1 class="hero-title">Who we <em>are</em></h1>
+    <div class="hero-rule" aria-hidden="true"></div>
+    <p class="hero-sub">Driven students from every major, building principled business leaders at the University of Miami since 1941.</p>
+  </header>
+
+  <!-- VIDEO -->
+  <section class="video-section" aria-label="Chapter video">
+    <div class="container">
+      <div class="video-frame reveal" id="videoFrame">
+        <img class="video-crest" src="images/crest.png" alt="" />
+        <button type="button" class="video-play" id="videoPlay" aria-label="Play video">
+          <span class="circle"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg></span>
+        </button>
+        <p class="video-caption"><small>Watch</small><span id="videoCaption">This is Beta Pi</span></p>
+        <p class="video-soon" role="status">Video coming soon</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORY -->
+  <section id="story" aria-labelledby="story-heading">
+    <div class="container story">
+      <div class="reveal">
+        <p class="section-label">Our story</p>
+        <h2 class="section-title" id="story-heading">More than a century of <em>leadership.</em></h2>
+      </div>
+      <div class="story-copy reveal">
+        <p>Alpha Kappa Psi was founded at New York University in 1904 to develop principled business leaders. Today it is the oldest and largest co-ed professional fraternity in the world.</p>
+        <p>Beta Pi brought that mission to the University of Miami in 1941. Our brothers come from every major and background, united by a drive to grow professionally, give back, and lift each other up.</p>
+        <ol class="story-timeline">
+          <li><div class="yr">19<em>04</em></div><p>Alpha Kappa Psi is founded at New York University.</p></li>
+          <li><div class="yr">19<em>41</em></div><p>Beta Pi is chartered at the University of Miami on May 9.</p></li>
+          <li><div class="yr">To<em>day</em></div><p>A co-ed chapter open to all majors, with brothers at top firms across the country.</p></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- PILLARS + VALUES -->
+  <section id="about" aria-labelledby="values-heading" style="padding-top: 0">
+    <div class="container">
+      <div class="pillars reveal">
+        <div class="pillar"><span class="pillar-num">01</span><h3>The Brotherhood</h3><p>Driven people with different goals who push each other and stay close long after graduation.</p></div>
+        <div class="pillar"><span class="pillar-num">02</span><h3>The Development</h3><p>Mock interviews, workshops, and an alumni network that turns internships into careers.</p></div>
+        <div class="pillar"><span class="pillar-num">03</span><h3>The Philanthropy</h3><p>Suicide prevention and mental health awareness, through service and fundraising all year long.</p></div>
+      </div>
+
+      <div class="values">
+        <div class="values-head reveal">
+          <p class="section-label" id="values-heading">Our Core Values</p>
+          <h3 class="values-title" aria-label="BUSIK"><span>B</span><span>U</span><span>S</span><span>I</span><span>K</span></h3>
+        </div>
+        <div class="values-grid reveal" id="valuesGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALLERY (shown once photos are added in the CMS) -->
+  <section id="gallery" aria-labelledby="gallery-heading" hidden>
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Gallery</p>
+        <h2 class="section-title" id="gallery-heading">Life at <em>Beta Pi</em></h2>
+      </div>
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo">
+      <button type="button" class="lightbox-close" aria-label="Close">×</button>
+      <figure><img alt="" /><figcaption><strong></strong><span></span></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="stats" aria-label="Chapter at a glance">
+    <div class="container stats-grid" id="statsGrid"></div>
+  </section>
+
+  <!-- CTA -->
+  <section aria-label="Join Beta Pi">
+    <div class="container">
+      <div class="cta-band reveal">
+        <div>
+          <h2>Ready to be part of <em>the story?</em></h2>
+          <p>Recruitment opens every fall and spring. All majors welcome.</p>
+        </div>
+        <div class="cta-actions">
+          <a href="index.html#apply" class="btn btn-white">Apply Now</a>
+          <a href="members.html" class="btn btn-outline-white">Meet the Members</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-id">
+        <img src="images/crest.png" alt="" />
+        <div>
+          <p class="footer-brand">Alpha Kappa Psi <em>Beta Pi</em></p>
+          <p class="footer-sub">University of Miami · Coral Gables, FL · <a data-link="email" href="#"></a></p>
+        </div>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="philanthropy.html">Philanthropy</a>
+        <a href="members.html">Members</a>
+        <a href="events.html">Events</a>
+        <a href="apply.html">Apply</a>
+        <a data-link="instagram" href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a data-link="tiktok" href="#" target="_blank" rel="noopener noreferrer">TikTok</a>
+      </nav>
+    </div>
+    <div class="footer-copy"><div class="theme-switch light" role="group" aria-label="Site theme"></div></div>
+    <p class="footer-copy">&copy; <span data-year></span> Beta Pi Chapter of Alpha Kappa Psi. All rights reserved.</p>
+  </footer>
+
+  <script src="site.js"></script>
+  <script src="sections.js"></script>
+</body>
+</html>

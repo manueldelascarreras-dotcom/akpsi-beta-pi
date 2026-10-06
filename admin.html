@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Beta Pi CMS</title>
+  <link rel="icon" href="images/crest.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <!-- Reads and writes Excel files in the browser -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+</head>
+<body>
+
+  <!-- Login / first-time setup -->
+  <div class="auth" id="auth" hidden>
+    <form class="auth-card" id="authForm">
+      <img src="images/crest.png" alt="" />
+      <h1 id="authTitle">Alpha Kappa Psi</h1>
+      <p id="authText">Beta Pi CMS. Log in to manage the site.</p>
+      <input type="password" id="authPass" placeholder="Password" autocomplete="current-password" required />
+      <input type="password" id="authPass2" placeholder="Confirm password" autocomplete="new-password" hidden />
+      <button class="btn primary" type="submit" id="authBtn">Log in</button>
+      <p class="auth-error" id="authError"></p>
+    </form>
+  </div>
+
+  <!-- App -->
+  <div class="shell" id="app" hidden>
+    <aside class="side" id="side">
+      <div class="brand"><img src="images/crest.png" alt="" /><div><b>Beta Pi</b><span>CMS</span></div></div>
+      <nav id="sideNav"></nav>
+      <div class="side-foot">
+        <a href="index.html" target="_blank" rel="noopener">View site ↗</a>
+        <button type="button" id="changePass">Change password</button>
+        <button type="button" id="logout">Log out</button>
+      </div>
+    </aside>
+    <div>
+      <div class="mobile-top">
+        <button type="button" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <img src="images/crest.png" alt="" /><b>Beta Pi CMS</b>
+      </div>
+      <main class="main" id="view"></main>
+    </div>
+  </div>
+
+  <!-- Applicant drawer -->
+  <div class="scrim" id="scrim"></div>
+  <aside class="drawer" id="drawer" aria-label="Applicant details"></aside>
+
+  <!-- Unsaved changes -->
+  <div class="savebar" id="savebar">
+    <span>You have unsaved changes</span>
+    <button class="btn ghost sm" type="button" id="discardBtn">Discard</button>
+    <button class="btn primary sm" type="button" id="saveBtn" style="background:#fff;color:#0B2447">Save changes</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

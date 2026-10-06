@@ -1,0 +1,81 @@
+{
+  "chapter": "Beta Pi",
+  "school": "University of Miami",
+  "founded": "May 9, 1941",
+  "email": "akpsi.betapi@gmail.com",
+  "instagram": "umakpsi",
+  "tiktok": "umakpsi",
+  "linkedin": "https://www.linkedin.com/search/results/all/?keywords=Alpha%20Kappa%20Psi%20Beta%20Pi%20University%20of%20Miami",
+  "applyForm": "apply.html",
+  "apply": {
+    "term": "Spring 2027",
+    "open": true,
+    "deadline": "2027-01-24T23:59",
+    "status": "Applications are open",
+    "copy": "Recruitment opens every fall and spring. All majors and years are welcome, no business background required. Here's how it works.",
+    "timeline": [
+      { "step": "Info Sessions & Tabling", "when": "Week 1", "where": "Herbert Business School", "text": "Open to everyone. Meet the brothers and ask anything about AKPsi." },
+      { "step": "Application Due", "when": "Week 1", "where": "Online", "text": "Submit the rush application. All majors and years welcome." },
+      { "step": "Formal Interview", "when": "Invite only" },
+      { "step": "Shark Tank", "when": "Invite only" },
+      { "step": "Smoker", "when": "Invite only" }
+    ]
+  },
+  "aboutVideo": {
+    "src": "",
+    "poster": "",
+    "caption": "This is Beta Pi"
+  },
+  "values": [
+    { "name": "Brotherhood", "text": "Trust, respect, cooperation, companionship, and aid to brothers is the expected norm.", "photo": "" },
+    { "name": "Unity", "text": "Education and experience are emphasized and shared.", "photo": "" },
+    { "name": "Service", "text": "Sharing of time, talent, and treasure with society and with our fraternity is a priority.", "photo": "" },
+    { "name": "Integrity", "text": "All actions, whether in business or in life, are guided by honesty, ethics, and fairness.", "photo": "" },
+    { "name": "Knowledge", "text": "A common understanding of our vision and values that transcends chapter, generation, and profession is used to anticipate and create the future.", "photo": "" }
+  ],
+  "stats": [
+    { "value": "1941", "label": "Chartered at the U" },
+    { "value": "1904", "label": "AKPsi founded" },
+    { "value": "All", "label": "Majors welcome" }
+  ],
+  "placements": {
+    "title": "Summer 2026 internships",
+    "firms": [
+      { "name": "Jefferies", "height": 30, "logo": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Jefferies_logo.svg" },
+      { "name": "Bank of America", "height": 26, "logo": "https://upload.wikimedia.org/wikipedia/commons/2/20/Bank_of_America_logo.svg" },
+      { "name": "NBCUniversal", "height": 26, "logo": "https://upload.wikimedia.org/wikipedia/commons/b/bd/NBCUniversal_2026_Logo.svg" },
+      { "name": "Fox Sports", "height": 44, "logo": "https://upload.wikimedia.org/wikipedia/commons/0/0c/FOX_Sports_logo.svg" },
+      { "name": "Grant Thornton", "height": 34, "logo": "https://upload.wikimedia.org/wikipedia/en/f/f5/Grant_Thornton_International_logo.svg" },
+      { "name": "Summit Partners", "height": 34, "logo": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Summit_Partners_Logo.svg" },
+      { "name": "SIFMA", "height": 46, "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Logo_of_SIFMA.tif/lossy-page1-500px-Logo_of_SIFMA.tif.jpg" },
+      { "name": "DTCC", "height": 26, "logo": "https://upload.wikimedia.org/wikipedia/commons/7/73/Depository_Trust_%26_Clearing_Corporation_logo.svg" },
+      { "name": "Insmed", "height": 38, "logo": "https://insmed.com/wp-content/uploads/2025/05/insmed-logo.svg" }
+    ]
+  },
+  "spotlight": {
+    "name": "Fernando Sepúlveda Sagaseta",
+    "detail": "Senior · Business & Engineering · UM Student Government President",
+    "quote": "At AKPsi I was surrounded by the most driven people on campus, each with completely different career aspirations. We've taught each other hard work, and how to lead with perspective. Without them, I wouldn't be where I am."
+  },
+  "philanthropy": {
+    "cause": "Suicide Prevention & Mental Health Awareness",
+    "blurb": "Beta Pi's philanthropy is suicide prevention. We raise money, start honest conversations about mental health, and make sure every Cane knows where to turn when things get heavy.",
+    "initiatives": [
+      { "icon": "walk", "title": "Awareness Walk", "text": "We walk together each year to honor those we've lost and raise funds for suicide prevention." },
+      { "icon": "chat", "title": "Campus Conversations", "text": "Panels, tabling, and workshops that make talking about mental health normal at the U." },
+      { "icon": "heart", "title": "Fundraising", "text": "Every dollar we raise supports prevention research, education, and support programs." }
+    ],
+    "support": [
+      { "label": "UM Counseling Center (24/7)", "value": "305-284-5511", "href": "tel:3052845511" }
+    ],
+    "why": "College can be a lot. Classes, recruiting, being away from home, and the pressure to have it all figured out can weigh on anyone, and too often people struggle quietly. We chose suicide prevention because every brother, every friend, and every Cane deserves to know they're not alone and that reaching out is a sign of strength.",
+    "supportSteps": [
+      { "icon": "ask", "title": "Ask", "text": "If you're worried about someone, ask them directly how they're doing. Asking won't make things worse, and it shows you care." },
+      { "icon": "ear", "title": "Listen", "text": "Give them space to talk without judging or trying to fix everything. Just being there matters." },
+      { "icon": "link", "title": "Connect", "text": "Help them reach support: the 988 Lifeline, the UM Counseling Center, or someone they trust." },
+      { "icon": "repeat", "title": "Follow up", "text": "Check in again in a day or two. A quick text can mean more than you think." }
+    ],
+    "donate": "",
+    "ticker": ["You matter", "Check on your friends", "It's okay to not be okay", "Your story isn't over", "Reach out", "You are not alone"]
+  }
+}
