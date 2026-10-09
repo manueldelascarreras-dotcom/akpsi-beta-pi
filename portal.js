@@ -52,6 +52,8 @@ const I = {
   out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
   megaphone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M16 9a3 3 0 0 1 0 6"/></svg>',
   dl: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
   ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
 };
 
@@ -181,6 +183,54 @@ async function openFile(path) {
 }
 const fileName = p => decodeURIComponent(String(p).split('/').pop()).replace(/-[0-9a-f]{6}(\.\w+)$/, '$1');
 
+/* ───────────── invite code input ─────────────
+ * Ported from 21st.dev "OTP Input" (ddoemonn): one box per character, typing moves forward,
+ * paste fills from the start, Backspace walks back, arrows/Home/End move, caret blinks in
+ * the active empty box, characters fade in, and the row shakes on an error.
+ */
+function otpInput(root, { length = 8, group = 4, onComplete } = {}) {
+  const ok = c => /^[A-Za-z0-9]$/.test(c);
+  const keep = t => [...String(t)].filter(ok).join('').toUpperCase();
+  root.innerHTML = Array.from({ length }, (_, i) =>
+    `<span class="otp-cell${group && i > 0 && i % group === 0 ? ' gap' : ''}"><input type="text" inputmode="text" maxlength="2" autocomplete="${i ? 'off' : 'one-time-code'}" autocapitalize="characters" autocorrect="off" spellcheck="false" aria-label="Invite code, character ${i + 1} of ${length}"></span>`).join('');
+  const cells = $$('input', root);
+  const chars = Array(length).fill('');
+  const focusAt = i => { const el = cells[Math.max(0, Math.min(length - 1, i))]; el.focus(); el.select(); };
+  const paint = () => cells.forEach((el, i) => { el.value = chars[i]; el.parentNode.classList.toggle('filled', !!chars[i]); });
+  const commit = () => { paint(); root.classList.remove('error'); if (chars.every(Boolean)) onComplete?.(chars.join('')); };
+  const fillFrom = (i, text) => {
+    let at = i;
+    for (const c of keep(text)) { if (at >= length) break; chars[at] = c; pop(at); at++; }
+    commit(); if (at < length) focusAt(at); else cells[length - 1].blur();
+  };
+  const pop = i => { const c = cells[i].parentNode; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); };
+  cells.forEach((el, i) => {
+    el.addEventListener('input', () => {
+      const raw = keep(el.value.replace(chars[i], '') || el.value);
+      if (!raw) { el.value = chars[i]; return; }
+      if (raw.length === 1) { chars[i] = raw; pop(i); commit(); if (i < length - 1 && !chars.every(Boolean)) focusAt(i + 1); return; }
+      fillFrom(i, raw);
+    });
+    el.addEventListener('keydown', e => {
+      const k = e.key;
+      if (k === 'Backspace') { e.preventDefault(); if (chars[i]) chars[i] = ''; else if (i > 0) { chars[i - 1] = ''; focusAt(i - 1); } paint(); }
+      else if (k === 'Delete') { e.preventDefault(); chars[i] = ''; paint(); }
+      else if (k === 'ArrowLeft') { e.preventDefault(); focusAt(i - 1); }
+      else if (k === 'ArrowRight') { e.preventDefault(); focusAt(i + 1); }
+      else if (k === 'Home') { e.preventDefault(); focusAt(0); }
+      else if (k === 'End') { e.preventDefault(); focusAt(length - 1); }
+    });
+    el.addEventListener('paste', e => { e.preventDefault(); const t = keep(e.clipboardData.getData('text')); fillFrom(t.length >= length ? 0 : i, t); });
+    el.addEventListener('focus', () => {
+      const firstEmpty = chars.findIndex(c => !c);
+      if (firstEmpty !== -1 && firstEmpty < i) return focusAt(firstEmpty);
+      el.select(); el.parentNode.classList.add('active');
+    });
+    el.addEventListener('blur', () => el.parentNode.classList.remove('active'));
+  });
+  return { clear: () => { chars.fill(''); paint(); }, error: () => { root.classList.remove('error'); void root.offsetWidth; root.classList.add('error'); } };
+}
+
 /* ───────────── auth screens ───────────── */
 
 let signingUp = false;
@@ -200,17 +250,14 @@ function showAuth(mode = 'signin', msg = '', prefill = {}) {
     signin: `
       <h2>Sign in</h2><p class="lead">Welcome back to the pledge portal.</p>
       <form id="aForm" novalidate>
-        <label class="f"><span>Email</span><input class="input" type="email" name="email" autocomplete="email" placeholder="you@miami.edu" required></label>
-        <label class="f"><span class="row">Password<span class="grow"></span><button type="button" class="linkish small" data-auth="reset">Forgot?</button></span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
-        <p class="error" id="aErr" role="alert">${esc(msg)}</p>
+        <label class="icon-field"><span class="sr-only">Email</span>${I.mail}<input class="input" type="email" name="email" autocomplete="email" placeholder="Email" required></label>
+        <label class="icon-field"><span class="sr-only">Password</span>${I.lock}<input class="input" type="password" name="password" autocomplete="current-password" placeholder="Password" required></label>
+        <div class="row auth-row"><p class="error grow" id="aErr" role="alert">${esc(msg)}</p><button type="button" class="linkish small" data-auth="reset">Forgot password?</button></div>
         <button class="btn primary" type="submit">Sign in</button>
       </form>
-      <div class="auth-or"><span>New pledge?</span></div>
-      <form id="codeForm" class="code-form" novalidate>
-        <label class="f"><span>Invite code</span>
-          <div class="code-row"><input class="input code-input" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD2345" maxlength="12" required><button class="btn" type="submit">Continue</button></div>
-          <small>From your VPM. It sets up your account once.</small></label>
-      </form>`,
+      <div class="auth-or"><span>New pledge? Enter your invite code</span></div>
+      <div class="otp" id="otp" role="group" aria-label="Invite code"></div>
+      <p class="otp-msg" id="otpMsg" aria-live="polite">8 characters from your VPM. Paste works too.</p>`,
     signup: `
       <h2>Create your account</h2><p class="lead">You’ll need the invite code from your VPM. It works once.</p>
       <form id="aForm" novalidate>
@@ -259,12 +306,14 @@ function showAuth(mode = 'signin', msg = '', prefill = {}) {
   });
   const form = $('#aForm');
   setTimeout(() => (prefill.code ? form?.querySelector('[name=name]') : form?.querySelector('input'))?.focus(), 30);
-  /* Invite code below sign-in: carry the code into account creation */
-  $('#codeForm')?.addEventListener('submit', e => {
-    e.preventDefault();
-    const code = new FormData(e.target).get('code').trim().toUpperCase();
-    if (!code) { e.target.querySelector('input').focus(); return; }
-    showAuth('signup', '', { code });
+  /* Invite code below sign-in: a full code carries straight into account creation */
+  if ($('#otp')) otpInput($('#otp'), {
+    length: 8,
+    onComplete: code => {
+      $('#otpMsg').textContent = 'Code entered. Setting up your account…';
+      $('#otp').classList.add('done');
+      setTimeout(() => showAuth('signup', '', { code }), 350);
+    },
   });
   form?.addEventListener('submit', async e => {
     e.preventDefault();
