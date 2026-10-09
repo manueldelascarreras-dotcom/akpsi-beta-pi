@@ -104,6 +104,69 @@ let viewAs = null;   // { uid, role, name } while previewing
 const role = () => viewAs?.role || S.me?.role;
 const meUid = () => viewAs?.uid || S.me?.uid;
 const meName = () => viewAs?.name || S.me?.name;
+let viewKey = '';        // '' | a person's uid | 'demo:vpm' | 'demo:educator' | 'demo:pledge'
+let demoBackup = null;   // the real data, kept aside while the sample class is showing
+
+function setViewAs(key) {
+  const demo = key.startsWith('demo:');
+  if (demo && !demoBackup) {
+    demoBackup = { people: S.people, deliverables: S.deliverables, submissions: S.submissions, program: S.program, announcements: S.announcements, events: S.events, resources: S.resources };
+    Object.assign(S, buildDemoClass());
+  }
+  if (!demo && demoBackup) { Object.assign(S, demoBackup); demoBackup = null; }
+  indexSubs();
+  viewKey = key;
+  const who = demo ? { vpm: null, educator: byUid('demo-edu'), pledge: byUid('demo-p1') }[key.slice(5)] : byUid(key);
+  viewAs = who ? { uid: who.uid, role: who.role, name: who.name } : null;
+  renderShell();
+  location.hash = '#/home'; route();
+}
+
+/* A believable pledge class built in the browser for previews. Never sent to the server. */
+function buildDemoClass() {
+  const start = new Date(); start.setDate(start.getDate() - 17); start.setHours(0, 0, 0, 0);
+  const at = (week, day, h = 23, m = 59) => { const d = new Date(start); d.setDate(d.getDate() + 7 * (week - 1) + day); d.setHours(h, m, 0, 0); return d.toISOString(); };
+  const plus = (iso, hours) => new Date(Date.parse(iso) + hours * 3600e3).toISOString();
+  const edu = { uid: 'demo-edu', name: 'Jordan Reyes', role: 'educator', educatorUid: '', email: 'jordan@example.edu', active: true };
+  const names = ['Sofia Alvarez', 'Marcus Chen', 'Olivia Grant', 'Daniel Okafor', 'Priya Patel', 'Ethan Brooks'];
+  const pledges = names.map((name, i) => ({ uid: `demo-p${i + 1}`, name, role: 'pledge', educatorUid: 'demo-edu', email: `${name.split(' ')[0].toLowerCase()}@example.edu`, active: true, createdAt: start.toISOString() }));
+  const items = [
+    [1, 'Introduction bio', 4], [1, 'Professional headshot', 6], [2, 'Chapter history quiz', 5], [2, 'Creed reflection', 6],
+    [3, 'Brother one-on-ones (5)', 4], [3, 'Class project proposal', 6], [4, 'Resume review', 5], [4, 'LinkedIn profile', 6],
+  ];
+  const deliverables = items.map(([week, name, day], i) => ({ id: `demo-d${i + 1}`, week, name, dueAt: at(week, day), order: i, resources: [],
+    instructions: `Sample instructions for ${name.toLowerCase()}. Upload a PDF or image, or paste a link.` }));
+  /* Each pledge gets a different pattern: strong, steady, late, missing, revisions */
+  const patterns = [
+    ['A95', 'A91', 'A88', 'A94', 'S', 'S'], ['A84', 'L', 'R', 'A79', 'S'], ['A90', 'A87', 'M', 'M', 'A92'],
+    ['L72', 'M', 'A80', 'M'], ['A97', 'A93', 'A96', 'A90', 'A95', 'R'], ['M', 'M', 'S', 'M'],
+  ];
+  const submissions = [];
+  pledges.forEach((p, pi) => patterns[pi].forEach((code, di) => {
+    const d = deliverables[di];
+    if (!d || code === 'M') return;
+    const lateSub = code.startsWith('L') || code === 'L';
+    const submittedAt = lateSub ? plus(d.dueAt, 30 + pi * 6) : plus(d.dueAt, -20 - di);
+    const grade = /\d/.test(code) ? Number(code.slice(1)) : null;
+    const status = code === 'S' || code === 'L' ? 'submitted' : code === 'R' ? 'needs_revision' : 'approved';
+    const history = [{ at: submittedAt, by: p.uid, byName: p.name, action: 'submitted', comment: '' }];
+    if (status === 'approved') history.push({ at: plus(submittedAt, 20), by: edu.uid, byName: edu.name, action: 'approved', comment: grade >= 90 ? 'Excellent work.' : 'Good, a few small fixes next time.', ...(grade != null ? { grade } : {}) });
+    if (status === 'needs_revision') history.push({ at: plus(submittedAt, 18), by: edu.uid, byName: edu.name, action: 'requested revision', comment: 'Please add more detail and resubmit.' });
+    submissions.push({ id: `${d.id}__${p.uid}`, deliverableId: d.id, pledgeUid: p.uid, week: d.week, files: [], note: 'Sample submission (demo data).', link: 'https://example.com',
+      status, late: Date.parse(submittedAt) > Date.parse(d.dueAt), submittedAt, firstSubmittedAt: submittedAt, history,
+      ...(grade != null ? { grade, gradedByName: edu.name } : {}), ...(status !== 'submitted' ? { reviewedByName: edu.name } : {}) });
+  }));
+  const weeks = (S.program.weeks || []).map(w => ({ ...w }));
+  return {
+    program: { className: 'Sample pledge class', startDate: isoDay(start), weeks },
+    people: [{ ...S.me }, edu, ...pledges],
+    deliverables, submissions,
+    announcements: [{ id: 'demo-a1', title: 'Week 3 kickoff', body: 'One-on-ones start this week. The sign-up sheet is in the group chat.', pinned: true, author: S.me.name, createdAt: plus(at(3, 0, 9, 0), 0) }],
+    events: [{ id: 'demo-e1', title: 'Pledge meeting', date: isoDay(new Date(Date.parse(at(3, 1)))), time: '7:00 PM', location: 'Herbert Business School', kind: 'meeting', week: 3 },
+      { id: 'demo-e2', title: 'Brotherhood dinner', date: isoDay(new Date(Date.parse(at(3, 4)))), time: '8:00 PM', location: 'Coral Gables', kind: 'event', week: 3 }],
+    resources: [{ id: 'demo-r1', title: 'Pledge handbook', week: 0, url: 'https://example.com', description: 'Sample resource.' }],
+  };
+}
 const isStaff = () => ['educator', 'vpm'].includes(role());
 const byUid = uid => S.people.find(p => p.uid === uid);
 const pledges = () => S.people.filter(p => p.role === 'pledge' && p.active !== false && (role() === 'vpm' || (role() === 'pledge' ? p.uid === meUid() : p.educatorUid === meUid()))).sort((a, b) => a.name.localeCompare(b.name));
@@ -394,26 +457,26 @@ function renderShell() {
   $('#sideNav').innerHTML = items.map(it => typeof it === 'string'
     ? `<div class="group">${it.slice(1)}</div>`
     : `<a href="#/${it[0]}" data-nav="${it[0]}">${it[2]}<span>${it[1]}</span>${it[3] === 'queue' && q ? `<span class="count">${q}</span>` : ''}</a>`).join('');
-  /* VPMs get a "View as" switcher to preview any educator's or pledge's portal */
+  /* VPMs get a "View as" switcher: real people, or a sample class that lives only in the browser */
+  const real = demoBackup ? demoBackup.people : S.people;
+  const opt = (v, label) => `<option value="${v}" ${viewKey === v ? 'selected' : ''}>${esc(label)}</option>`;
   const viewAsBox = S.me.role === 'vpm' ? `<label class="view-as"><span>View as</span><select id="viewAs">
-      <option value="">Myself (VPM)</option>
-      <optgroup label="Pledge educators">${S.people.filter(p => p.role === 'educator' && p.active !== false).map(p => `<option value="${p.uid}" ${viewAs?.uid === p.uid ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</optgroup>
-      <optgroup label="Pledges">${S.people.filter(p => p.role === 'pledge' && p.active !== false).sort((a, b) => a.name.localeCompare(b.name)).map(p => `<option value="${p.uid}" ${viewAs?.uid === p.uid ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</optgroup>
+      ${opt('', 'Myself (VPM)')}
+      <optgroup label="Sample class (demo data)">${opt('demo:vpm', 'VPM dashboard')}${opt('demo:educator', 'Pledge educator')}${opt('demo:pledge', 'Pledge')}</optgroup>
+      ${real.some(p => p.role === 'educator' && p.active !== false) ? `<optgroup label="Pledge educators">${real.filter(p => p.role === 'educator' && p.active !== false).map(p => opt(p.uid, p.name)).join('')}</optgroup>` : ''}
+      ${real.some(p => p.role === 'pledge' && p.active !== false) ? `<optgroup label="Pledges">${real.filter(p => p.role === 'pledge' && p.active !== false).sort((x, y) => x.name.localeCompare(y.name)).map(p => opt(p.uid, p.name)).join('')}</optgroup>` : ''}
     </select></label>` : '';
   $('#sideUser').innerHTML = `${viewAsBox}<div class="side-me">
     <div class="avatar ${S.me.role === 'vpm' ? 'gold' : S.me.role === 'educator' ? 'navy' : ''}">${initials(S.me.name)}</div>
     <div class="who"><b>${esc(S.me.name)}</b><small>${ROLE_NAME[S.me.role]}</small></div>
     <button class="icon-btn" data-auth="signout" title="Sign out" aria-label="Sign out">${I.out}</button></div>`;
   const sel = $('#viewAs');
-  if (sel) sel.onchange = () => {
-    const p = byUid(sel.value);
-    viewAs = p ? { uid: p.uid, role: p.role, name: p.name } : null;
-    renderShell();
-    location.hash = '#/home'; route();
-  };
-  $('#previewBar').hidden = !viewAs;
-  if (viewAs) $('#previewBar').innerHTML = `<span>Viewing as <b>${esc(viewAs.name)}</b> · ${ROLE_NAME[viewAs.role]} · read-only</span><button class="btn sm" id="exitPreview">Back to my view</button>`;
-  $('#exitPreview')?.addEventListener('click', () => { viewAs = null; renderShell(); location.hash = '#/home'; route(); });
+  if (sel) sel.onchange = () => setViewAs(sel.value);
+  $('#previewBar').hidden = !viewKey;
+  if (viewKey) $('#previewBar').innerHTML = demoBackup
+    ? `<span>Sample class · ${viewAs ? `viewing as <b>${esc(viewAs.name)}</b> · ${ROLE_NAME[role()]}` : '<b>VPM view</b>'} · demo data, nothing is saved</span><button class="btn sm" id="exitPreview">Back to my view</button>`
+    : `<span>Viewing as <b>${esc(viewAs.name)}</b> · ${ROLE_NAME[viewAs.role]} · read-only</span><button class="btn sm" id="exitPreview">Back to my view</button>`;
+  $('#exitPreview')?.addEventListener('click', () => setViewAs(''));
   const wk = currentWeek();
   $('#topWeek').innerHTML = wk === 0
     ? `<span class="lbl">${esc(S.program.className)} ·</span> <b>Starts ${fmtDay(S.program.startDate + 'T00:00')}</b>`
