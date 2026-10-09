@@ -248,16 +248,17 @@ function showAuth(mode = 'signin', msg = '', prefill = {}) {
   const body = $('#authBody');
   const views = {
     signin: `
-      <h2>Sign in</h2><p class="lead">Welcome back to the pledge portal.</p>
+      <h2>Pledge sign in</h2><p class="lead">For pledges, pledge educators, and VPMs of the Beta Pi Chapter.</p>
       <form id="aForm" novalidate>
-        <label class="icon-field"><span class="sr-only">Email</span>${I.mail}<input class="input" type="email" name="email" autocomplete="email" placeholder="Email" required></label>
-        <label class="icon-field"><span class="sr-only">Password</span>${I.lock}<input class="input" type="password" name="password" autocomplete="current-password" placeholder="Password" required></label>
-        <div class="row auth-row"><p class="error grow" id="aErr" role="alert">${esc(msg)}</p><button type="button" class="linkish small" data-auth="reset">Forgot password?</button></div>
+        <label class="f"><span>Email</span><input class="input" type="email" name="email" autocomplete="email" placeholder="you@miami.edu" required></label>
+        <label class="f"><span class="row">Password<span class="grow"></span><button type="button" class="linkish" data-auth="reset">Forgot password?</button></span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
+        <p class="error" id="aErr" role="alert">${esc(msg)}</p>
         <button class="btn primary" type="submit">Sign in</button>
       </form>
-      <div class="auth-or"><span>New pledge? Enter your invite code</span></div>
+      <p class="auth-or">or join with your invite code</p>
       <div class="otp" id="otp" role="group" aria-label="Invite code"></div>
-      <p class="otp-msg" id="otpMsg" aria-live="polite">8 characters from your VPM. Paste works too.</p>`,
+      <p class="otp-msg" id="otpMsg" aria-live="polite">New pledge? Your VPM sends you an 8-character code. It works once and sets up your account.</p>
+      <p class="auth-help">Trouble signing in? Ask your VPM to send a new invite code or reset your access.</p>`,
     signup: `
       <h2>Create your account</h2><p class="lead">You’ll need the invite code from your VPM. It works once.</p>
       <form id="aForm" novalidate>
@@ -298,7 +299,7 @@ function showAuth(mode = 'signin', msg = '', prefill = {}) {
         <button class="btn sm" data-demo="educator@test.local">Pledge Educator</button>
         <button class="btn sm" data-demo="vpm@test.local">VPM</button>
       </div></div>` : '';
-  body.innerHTML = views[mode] + demo;
+  body.innerHTML = '<p class="greek" aria-hidden="true">ΑΚΨ</p>' + views[mode] + demo;
   $$('[data-demo]', body).forEach(b => b.onclick = async () => {
     b.disabled = true;
     try { if (auth.currentUser) await auth.signOut(); await auth.signInWithEmailAndPassword(b.dataset.demo, 'emulator-only-123'); location.hash = '#/home'; }

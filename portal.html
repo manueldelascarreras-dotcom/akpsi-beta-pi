@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pledge Portal | Alpha Kappa Psi Beta Pi</title>
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#072D20">
+  <meta name="theme-color" content="#1B2B4B">
   <link rel="icon" href="images/crest.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=GFS+Didot&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="portal.css" />
 </head>
 <body>
@@ -18,10 +18,14 @@
 
   <!-- Sign in / create account -->
   <main class="auth" id="auth" hidden>
-    <div class="auth-card">
-      <a href="index.html" class="auth-brand"><img src="images/crest.png" alt=""><span>Beta Pi<small>Pledge Portal</small></span></a>
-      <div id="authBody"></div>
-    </div>
+    <header class="auth-nav">
+      <a href="index.html" class="an-brand"><img src="images/crest.png" alt=""><span class="an-greek" aria-hidden="true">ΑΚΨ</span><span class="an-name"><b>Alpha Kappa Psi</b><small>Beta Pi Chapter</small></span></a>
+      <nav class="an-links" aria-label="Chapter site">
+        <a href="index.html">Home</a><a href="about.html">About</a><a href="philanthropy.html">Philanthropy</a><a href="members.html">Members</a><a href="events.html">Events</a><a href="apply.html">Apply</a>
+      </nav>
+      <a class="an-pill" href="portal.html" aria-current="page">Pledge portal</a>
+    </header>
+    <div class="auth-body"><div class="auth-card" id="authBody"></div></div>
     <p class="auth-foot">Alpha Kappa Psi · Beta Pi Chapter · University of Miami</p>
   </main>
 
