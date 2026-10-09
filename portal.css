@@ -42,7 +42,7 @@
 html { -webkit-text-size-adjust: 100%; }
 body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-size: 14.5px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
 /* Tabular figures only where numbers line up */
-.stat .v, .scorecard, table.t td, table.matrix td.pct, .weekbars b, .cal-num { font-variant-numeric: tabular-nums; }
+.stat .v, .scorecard, .gb-avg, .gb-grade, table.matrix td.pct, .weekbars b, .cal-num { font-variant-numeric: tabular-nums; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 a { color: var(--brand-ink); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -670,3 +670,37 @@ table.matrix td.who { padding-left: 0; }
 .btn { border-radius: 999px; }
 .btn.sm { padding: 5px 14px; }
 @media (max-width: 860px) { .hole-card .ph { aspect-ratio: 16 / 9; } .holes { gap: 32px; } }
+
+/* ─── View as (VPM preview) ─── */
+.side-user { flex-direction: column; align-items: stretch; gap: 12px; }
+.side-me { display: flex; align-items: center; gap: 10px; }
+.view-as { display: block; }
+.view-as span { display: block; font-size: .58rem; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: rgba(255,255,255,.45); margin-bottom: 6px; }
+.view-as select { width: 100%; min-height: 36px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: #fff; font: inherit; font-size: .82rem; }
+.view-as select option, .view-as select optgroup { color: var(--ink); background: #fff; }
+.preview-bar { position: sticky; top: 0; z-index: 25; display: flex; align-items: center; gap: 14px; padding: 10px 44px; background: #FFF6E0; border-bottom: 1px solid #EBD9A8; color: #6B5320; font-size: .86rem; }
+.preview-bar span { flex: 1; }
+.preview-bar b { color: #4A3A12; }
+.preview-bar:not([hidden]) + .topbar { top: 44px; }
+
+/* ─── Grades ─── */
+.grade-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: .84rem; color: var(--mid); }
+.grade-row label { font-weight: 600; color: var(--ink); }
+.grade-row .input { width: 84px; min-height: 38px; padding: 6px 10px; text-align: center; font-weight: 700; font-size: .95rem; }
+.timeline .grade { color: var(--brand); }
+.late-text { color: var(--bad); font-weight: 500; }
+.gb-avg { font-size: 1.05rem; color: var(--brand); }
+table.gradebook th { white-space: nowrap; font-size: .62rem; letter-spacing: .06em; text-transform: none; color: var(--mid); vertical-align: bottom; }
+table.gradebook th span { display: block; font-weight: 700; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+table.gradebook td { text-align: center; padding: 8px 6px; }
+table.gradebook td:first-child, table.gradebook th:first-child { text-align: left; white-space: nowrap; }
+.gb-grade, .gb-mark { display: inline-grid; place-items: center; min-width: 34px; height: 28px; padding: 0 6px; border-radius: 6px; font-weight: 700; font-size: .84rem; text-decoration: none !important; }
+.gb-grade { color: var(--brand); background: var(--brand-wash); }
+.gb-grade.late { color: var(--bad); background: #FBEAE8; box-shadow: inset 0 0 0 1px #F1C4BE; }
+.gb-mark { color: var(--muted); }
+.gb-mark.approved { color: var(--ok); }
+.gb-mark.submitted, .gb-mark.late-sub { color: var(--wait); }
+.gb-mark.revision { color: var(--fix); }
+.gb-mark.missing { color: #fff; background: var(--bad); }
+.legend .gb-grade, .legend .gb-mark { min-width: 28px; height: 22px; font-size: .74rem; }
+@media (max-width: 860px) { .preview-bar { padding: 10px 16px; } }

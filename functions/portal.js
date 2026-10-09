@@ -182,10 +182,16 @@ module.exports = ({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug
   /* Educator or VPM: approve, request a revision, or just comment. */
   async function review(req, res, me, id) {
     requireRole(me, 'educator', 'vpm');
-    const { action, comment: raw } = readJSONBody(req);
+    const { action, comment: raw, grade: rawGrade } = readJSONBody(req);
     const comment = clean(raw, 4000);
+    /* Optional grade out of 100 (one decimal) */
+    let grade = null;
+    if (rawGrade !== undefined && rawGrade !== null && rawGrade !== '') {
+      grade = Math.round(Number(rawGrade) * 10) / 10;
+      if (!Number.isFinite(grade) || grade < 0 || grade > 100) return send(res, 400, { error: 'Grades go from 0 to 100.', field: 'grade' });
+    }
     if (!['approve', 'revise', 'comment'].includes(action)) return send(res, 400, { error: 'Unknown action.' });
-    if (action !== 'approve' && !comment) return send(res, 400, { error: action === 'revise' ? 'Tell the pledge what to change.' : 'Write a comment first.', field: 'comment' });
+    if (action !== 'approve' && !comment && !(action === 'comment' && grade !== null)) return send(res, 400, { error: action === 'revise' ? 'Tell the pledge what to change.' : 'Write a comment first.', field: 'comment' });
 
     const ref = db.collection('submissions').doc(id);
     const result = await db.runTransaction(async tx => {
@@ -198,7 +204,8 @@ module.exports = ({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug
       if (action === 'approve') s.status = 'approved';
       if (action === 'revise') s.status = 'needs_revision';
       if (action !== 'comment') { s.reviewedAt = at; s.reviewedBy = me.uid; s.reviewedByName = me.user.name; }
-      s.history = [...(s.history || []), { at, by: me.uid, byName: me.user.name, action: { approve: 'approved', revise: 'requested revision', comment: 'commented' }[action], comment }];
+      if (grade !== null) { s.grade = grade; s.gradedAt = at; s.gradedBy = me.uid; s.gradedByName = me.user.name; }
+      s.history = [...(s.history || []), { at, by: me.uid, byName: me.user.name, action: { approve: 'approved', revise: 'requested revision', comment: 'commented' }[action], comment, ...(grade !== null ? { grade } : {}) }];
       tx.set(ref, s);
       return { id, ...s };
     });

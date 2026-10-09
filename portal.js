@@ -99,10 +99,14 @@ function dueInfo(d, done) {
 /* ───────────── state ───────────── */
 
 const S = { me: null, program: { weeks: [] }, deliverables: [], resources: [], events: [], announcements: [], people: [], submissions: [], invites: [], subs: {} };
-const role = () => S.me?.role;
+/* A VPM can preview the portal as any educator or pledge (read-only) */
+let viewAs = null;   // { uid, role, name } while previewing
+const role = () => viewAs?.role || S.me?.role;
+const meUid = () => viewAs?.uid || S.me?.uid;
+const meName = () => viewAs?.name || S.me?.name;
 const isStaff = () => ['educator', 'vpm'].includes(role());
 const byUid = uid => S.people.find(p => p.uid === uid);
-const pledges = () => S.people.filter(p => p.role === 'pledge' && p.active !== false && (role() === 'vpm' || role() === 'pledge' || p.educatorUid === S.me.uid)).sort((a, b) => a.name.localeCompare(b.name));
+const pledges = () => S.people.filter(p => p.role === 'pledge' && p.active !== false && (role() === 'vpm' || (role() === 'pledge' ? p.uid === meUid() : p.educatorUid === meUid()))).sort((a, b) => a.name.localeCompare(b.name));
 const educators = () => S.people.filter(p => ['educator', 'vpm'].includes(p.role) && p.active !== false).sort((a, b) => a.name.localeCompare(b.name));
 const deliv = id => S.deliverables.find(d => d.id === id);
 const indexSubs = () => { S.subs = Object.fromEntries(S.submissions.map(s => [s.id, s])); };
@@ -111,7 +115,7 @@ const subFor = (dId, uid) => S.subs[`${dId}__${uid}`];
 /* Approved → Needs Revision → Submitted (Late if after the due date). No submission: Late once past due. */
 function statusOf(d, uid) {
   const s = subFor(d.id, uid);
-  if (s?.status === 'approved') return { key: 'approved', label: 'Approved', s };
+  if (s?.status === 'approved') return { key: 'approved', label: s.grade != null ? `Approved · ${s.grade}` : 'Approved', s };
   if (s?.status === 'needs_revision') return { key: 'revision', label: 'Needs Revision', s };
   if (s) return s.late ? { key: 'late', label: 'Late', s, cell: 'late-sub' } : { key: 'submitted', label: 'Submitted', s };
   if (d.dueAt && Date.now() > Date.parse(d.dueAt)) return { key: 'missing', label: 'Late', missing: true };
@@ -138,6 +142,7 @@ const weekDelivs = n => S.deliverables.filter(d => d.week === n);
 /* ───────────── API ───────────── */
 
 async function api(method, path, body) {
+  if (viewAs && method !== 'GET') throw new Error('Preview is read-only. Exit "View as" to make changes.');
   const token = await auth.currentUser.getIdToken();
   const opts = { method, headers: { Authorization: `Bearer ${token}` } };
   if (body instanceof FormData) opts.body = body;
@@ -150,6 +155,7 @@ async function api(method, path, body) {
 
 /* Upload with a progress callback (fetch can't report upload progress) */
 async function apiUpload(path, fd, onProgress) {
+  if (viewAs) throw new Error('Preview is read-only. Exit "View as" to make changes.');
   const token = await auth.currentUser.getIdToken();
   return new Promise((resolve, reject) => {
     const x = new XMLHttpRequest();
@@ -375,11 +381,12 @@ async function load() {
 
 const NAV = {
   pledge: [['home', 'Home', I.home], ['program', 'Program', I.flag], ['calendar', 'Calendar', I.cal], ['resources', 'Resources', I.book]],
-  educator: [['home', 'Dashboard', I.home], ['review', 'Review queue', I.inbox, 'queue'], ['pledges', 'My pledges', I.users], '—Program', ['program', 'Weeks 1–8', I.flag], ['calendar', 'Calendar', I.cal], ['resources', 'Resources', I.book]],
-  vpm: [['home', 'Dashboard', I.grid], ['review', 'Review queue', I.inbox, 'queue'], ['pledges', 'Pledges', I.users], ['people', 'People & access', I.users], '—Program CMS', ['cms/program', 'Weeks & class', I.flag], ['cms/deliverables', 'Deliverables', I.list], ['cms/resources', 'Resources', I.book], ['cms/announcements', 'Announcements', I.megaphone], ['calendar', 'Calendar', I.cal]],
+  educator: [['home', 'Dashboard', I.home], ['review', 'Review queue', I.inbox, 'queue'], ['pledges', 'My pledges', I.users], ['grades', 'Grades & lateness', I.list], '—Program', ['program', 'Weeks 1–8', I.flag], ['calendar', 'Calendar', I.cal], ['resources', 'Resources', I.book]],
+  vpm: [['home', 'Dashboard', I.grid], ['review', 'Review queue', I.inbox, 'queue'], ['pledges', 'Pledges', I.users], ['grades', 'Grades & lateness', I.list], ['people', 'People & access', I.users], '—Program CMS', ['cms/program', 'Weeks & class', I.flag], ['cms/deliverables', 'Deliverables', I.list], ['cms/resources', 'Resources', I.book], ['cms/announcements', 'Announcements', I.megaphone], ['calendar', 'Calendar', I.cal]],
 };
 const ROLE_NAME = { pledge: 'Pledge', educator: 'Pledge Educator', vpm: 'VPM' };
-const reviewQueue = () => S.submissions.filter(s => s.status === 'submitted' && deliv(s.deliverableId)).sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
+const visibleSub = s => role() === 'vpm' || (role() === 'pledge' ? s.pledgeUid === meUid() : pledges().some(p => p.uid === s.pledgeUid));
+const reviewQueue = () => S.submissions.filter(s => s.status === 'submitted' && deliv(s.deliverableId) && visibleSub(s)).sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
 
 function renderShell() {
   const items = NAV[role()] || [];
@@ -387,10 +394,26 @@ function renderShell() {
   $('#sideNav').innerHTML = items.map(it => typeof it === 'string'
     ? `<div class="group">${it.slice(1)}</div>`
     : `<a href="#/${it[0]}" data-nav="${it[0]}">${it[2]}<span>${it[1]}</span>${it[3] === 'queue' && q ? `<span class="count">${q}</span>` : ''}</a>`).join('');
-  $('#sideUser').innerHTML = `
-    <div class="avatar ${role() === 'vpm' ? 'gold' : role() === 'educator' ? 'navy' : ''}">${initials(S.me.name)}</div>
-    <div class="who"><b>${esc(S.me.name)}</b><small>${ROLE_NAME[role()]}</small></div>
-    <button class="icon-btn" data-auth="signout" title="Sign out" aria-label="Sign out">${I.out}</button>`;
+  /* VPMs get a "View as" switcher to preview any educator's or pledge's portal */
+  const viewAsBox = S.me.role === 'vpm' ? `<label class="view-as"><span>View as</span><select id="viewAs">
+      <option value="">Myself (VPM)</option>
+      <optgroup label="Pledge educators">${S.people.filter(p => p.role === 'educator' && p.active !== false).map(p => `<option value="${p.uid}" ${viewAs?.uid === p.uid ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</optgroup>
+      <optgroup label="Pledges">${S.people.filter(p => p.role === 'pledge' && p.active !== false).sort((a, b) => a.name.localeCompare(b.name)).map(p => `<option value="${p.uid}" ${viewAs?.uid === p.uid ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</optgroup>
+    </select></label>` : '';
+  $('#sideUser').innerHTML = `${viewAsBox}<div class="side-me">
+    <div class="avatar ${S.me.role === 'vpm' ? 'gold' : S.me.role === 'educator' ? 'navy' : ''}">${initials(S.me.name)}</div>
+    <div class="who"><b>${esc(S.me.name)}</b><small>${ROLE_NAME[S.me.role]}</small></div>
+    <button class="icon-btn" data-auth="signout" title="Sign out" aria-label="Sign out">${I.out}</button></div>`;
+  const sel = $('#viewAs');
+  if (sel) sel.onchange = () => {
+    const p = byUid(sel.value);
+    viewAs = p ? { uid: p.uid, role: p.role, name: p.name } : null;
+    renderShell();
+    location.hash = '#/home'; route();
+  };
+  $('#previewBar').hidden = !viewAs;
+  if (viewAs) $('#previewBar').innerHTML = `<span>Viewing as <b>${esc(viewAs.name)}</b> · ${ROLE_NAME[viewAs.role]} · read-only</span><button class="btn sm" id="exitPreview">Back to my view</button>`;
+  $('#exitPreview')?.addEventListener('click', () => { viewAs = null; renderShell(); location.hash = '#/home'; route(); });
   const wk = currentWeek();
   $('#topWeek').innerHTML = wk === 0
     ? `<span class="lbl">${esc(S.program.className)} ·</span> <b>Starts ${fmtDay(S.program.startDate + 'T00:00')}</b>`
@@ -399,8 +422,8 @@ function renderShell() {
 
 const ROUTES = {
   pledge: { home: vPledgeHome, program: vProgram, week: vWeek, calendar: vCalendar, resources: vResources },
-  educator: { home: vEducatorHome, review: vReviewList, pledges: vPledges, pledge: vPledge, program: vProgram, week: vWeek, calendar: vCalendar, resources: vResources },
-  vpm: { home: vVpmHome, review: vReviewList, pledges: vPledges, pledge: vPledge, people: vPeople, program: vProgram, week: vWeek, calendar: vCalendar, resources: vResources,
+  educator: { home: vEducatorHome, review: vReviewList, pledges: vPledges, pledge: vPledge, grades: vGrades, program: vProgram, week: vWeek, calendar: vCalendar, resources: vResources },
+  vpm: { home: vVpmHome, review: vReviewList, pledges: vPledges, pledge: vPledge, grades: vGrades, people: vPeople, program: vProgram, week: vWeek, calendar: vCalendar, resources: vResources,
     'cms/program': vCmsProgram, 'cms/deliverables': vCmsDeliverables, 'cms/resources': vCmsResources, 'cms/announcements': vCmsAnnouncements },
 };
 
@@ -429,7 +452,7 @@ const view = html => { $('#view').innerHTML = html; };
 
 /* ───────────── shared view pieces ───────────── */
 
-function ditem(d, uid = S.me.uid) {
+function ditem(d, uid = meUid()) {
   const st = statusOf(d, uid);
   const due = st.key === 'revision' ? { text: `Revision requested ${ago([...st.s.history].reverse().find(h => h.action === 'requested revision')?.at || st.s.submittedAt)}`, cls: 'soon' } : dueInfo(d, Boolean(st.s));
   const cta = st.key === 'approved' ? '' : st.key === 'revision' ? 'Resubmit' : st.s ? '' : 'Submit';
@@ -467,7 +490,7 @@ function announcementsCard(limit = 4) {
 function timeline(s) {
   const cls = { approved: 'approved', 'requested revision': 'revision', commented: 'comment', submitted: 'submit', resubmitted: 'submit' };
   return `<ul class="timeline">${[...(s.history || [])].reverse().map(h => `
-    <li class="${cls[h.action] || ''}"><div class="t-head"><b>${esc(h.by === S.me.uid ? 'You' : h.byName)}</b> ${esc(h.action)}<span class="when">${ago(h.at)}</span></div>
+    <li class="${cls[h.action] || ''}"><div class="t-head"><b>${esc(h.by === meUid() ? 'You' : h.byName)}</b> ${esc(h.action)}${h.grade != null ? ` · <b class="grade">${h.grade}/100</b>` : ''}<span class="when">${ago(h.at)}</span></div>
     ${h.comment ? `<div class="t-body">${linkify(h.comment)}</div>` : ''}</li>`).join('')}</ul>`;
 }
 
@@ -480,18 +503,18 @@ const stat = (k, v, s = '', cls = '', href = '') => `<${href ? `a href="${href}"
 /* ───────────── pledge: home ───────────── */
 
 function vPledgeHome() {
-  setTitle(`Welcome, ${first(S.me.name)}`);
+  setTitle(`Welcome, ${first(meName())}`);
   const wk = currentWeek();
   const n = wk || 1;
   const W = S.program.weeks[n - 1] || {};
   const thisWeek = weekDelivs(n);
-  const approved = thisWeek.filter(d => statusOf(d, S.me.uid).key === 'approved').length;
+  const approved = thisWeek.filter(d => statusOf(d, meUid()).key === 'approved').length;
   const order = { revision: 0, missing: 1, notstarted: 2, late: 3, submitted: 4 };
-  const open = S.deliverables.map(d => ({ d, st: statusOf(d, S.me.uid) })).filter(x => x.st.key !== 'approved')
+  const open = S.deliverables.map(d => ({ d, st: statusOf(d, meUid()) })).filter(x => x.st.key !== 'approved')
     .sort((a, b) => order[a.st.key] - order[b.st.key] || String(a.d.dueAt || '9').localeCompare(String(b.d.dueAt || '9')));
   const action = open.filter(x => ['revision', 'missing', 'notstarted'].includes(x.st.key));
   const next = action[0]?.d;
-  const feedback = S.submissions.flatMap(s => (s.history || []).filter(h => h.by !== S.me.uid && (h.comment || h.action !== 'commented')).map(h => ({ ...h, s })))
+  const feedback = S.submissions.filter(s => s.pledgeUid === meUid()).flatMap(s => (s.history || []).filter(h => h.by !== meUid() && (h.comment || h.action !== 'commented')).map(h => ({ ...h, s })))
     .sort((a, b) => b.at.localeCompare(a.at)).slice(0, 5);
 
   view(`
@@ -505,20 +528,20 @@ function vPledgeHome() {
         <span><b>${approved}/${thisWeek.length}</b> approved this week</span>
         ${next ? `<span>Next due: <b>${esc(next.name)}</b></span>` : ''}
       </div>
-      ${next ? `<button class="btn primary" data-open-d="${next.id}">${statusOf(next, S.me.uid).key === 'revision' ? 'Fix and resubmit' : 'Submit'} ${esc(next.name)}</button>` : ''}
+      ${next ? `<button class="btn primary" data-open-d="${next.id}">${statusOf(next, meUid()).key === 'revision' ? 'Fix and resubmit' : 'Submit'} ${esc(next.name)}</button>` : ''}
     </div></section>
     <div class="cols">
       <div>
         <div class="card"><div class="card-head"><h2>Up next</h2><span class="grow"></span><a class="btn sm ghost" href="#/program">Full program</a></div>
           ${open.length ? `<ul class="dlist">${open.slice(0, 7).map(x => ditem(x.d)).join('')}</ul>` : `<div class="empty"><b>All caught up</b>Everything assigned so far is approved.</div>`}
         </div>
-        <div class="card"><div class="card-head"><h2>Scorecard</h2><span class="grow"></span><span class="small muted">Approved per week</span></div>${scorecard(S.me.uid)}</div>
+        <div class="card"><div class="card-head"><h2>Scorecard</h2><span class="grow"></span><span class="small muted">Approved per week</span></div>${scorecard(meUid())}</div>
       </div>
       <div>
         <div class="card"><div class="card-head"><h2>Feedback</h2></div>
           ${feedback.length ? `<ul class="feed">${feedback.map(h => `<li data-open-d="${h.s.deliverableId}" style="cursor:pointer">
             <div class="avatar sm navy">${initials(h.byName)}</div>
-            <div class="txt"><b>${esc(h.byName)}</b> <span class="muted">${esc(h.action)} · ${esc(deliv(h.s.deliverableId)?.name || '')}</span>
+            <div class="txt"><b>${esc(h.byName)}</b> <span class="muted">${esc(h.action)} · ${esc(deliv(h.s.deliverableId)?.name || '')}</span>${h.grade != null ? ` <b class="grade">· ${h.grade}/100</b>` : ''}
             ${h.comment ? `<p>${linkify(h.comment)}</p>` : ''}<div class="when">${ago(h.at)}</div></div></li>`).join('')}</ul>`
             : '<div class="empty">Feedback from your pledge educator will show up here.</div>'}
         </div>
@@ -544,7 +567,7 @@ function vProgram() {
     <div class="holes">${S.program.weeks.map((W, i) => {
       const n = i + 1, list = weekDelivs(n);
       const prog = role() === 'pledge'
-        ? { done: list.filter(d => statusOf(d, S.me.uid).key === 'approved').length, total: list.length }
+        ? { done: list.filter(d => statusOf(d, meUid()).key === 'approved').length, total: list.length }
         : classProgress(list);
       const pct = prog.total ? Math.round(prog.done / prog.total * 100) : 0;
       return `<a class="hole-card" href="#/week/${n}">
@@ -613,7 +636,7 @@ function deliverableDrawer(id, files = []) {
   if (!d) return;
   if (role() !== 'pledge') return staffDrawer(d);
   staged = files;
-  const st = statusOf(d, S.me.uid), s = st.s;
+  const st = statusOf(d, meUid()), s = st.s;
   const due = dueInfo(d, Boolean(st.s));
   const lastRevise = [...(s?.history || [])].reverse().find(h => h.action === 'requested revision');
   const canSubmit = st.key !== 'approved';
@@ -624,7 +647,7 @@ function deliverableDrawer(id, files = []) {
     </div><button class="icon-btn" data-close aria-label="Close">${I.x}</button></div>
     <div class="drawer-body">
       ${st.key === 'revision' ? `<section><div class="banner revision"><div><b>Revision requested${lastRevise ? ` by ${esc(lastRevise.byName)}` : ''}</b>${lastRevise ? linkify(lastRevise.comment) : 'Make the requested changes and resubmit.'}</div></div></section>` : ''}
-      ${st.key === 'approved' ? `<section><div class="banner approved"><div><b>Approved${s.reviewedByName ? ` by ${esc(s.reviewedByName)}` : ''}</b>Nice work. Nothing else to do here.</div></div></section>` : ''}
+      ${st.key === 'approved' ? `<section><div class="banner approved"><div><b>Approved${s.reviewedByName ? ` by ${esc(s.reviewedByName)}` : ''}${s.grade != null ? ` · Grade ${s.grade}/100` : ''}</b>Nice work. Nothing else to do here.</div></div></section>` : ''}
       ${st.key === 'missing' ? `<section><div class="banner late"><div><b>This is past due</b>You can still submit it. It will be marked late.</div></div></section>` : ''}
       ${d.instructions ? `<section><h4>Instructions</h4><div class="prose">${linkify(d.instructions)}</div></section>` : ''}
       ${d.resources?.length ? `<section><h4>Templates & resources</h4><div class="links">${d.resources.map(resourceRow).join('')}</div></section>` : ''}
@@ -722,7 +745,7 @@ document.addEventListener('drop', e => {
   const row = e.target.closest('.ditem[data-open-d]');
   if (!row || role() !== 'pledge') return;
   e.preventDefault(); row.classList.remove('drop');
-  if (statusOf(deliv(row.dataset.openD), S.me.uid).key === 'approved') return toast('That one is already approved.');
+  if (statusOf(deliv(row.dataset.openD), meUid()).key === 'approved') return toast('That one is already approved.');
   deliverableDrawer(row.dataset.openD, [...e.dataTransfer.files]);
 });
 
@@ -737,7 +760,7 @@ function vCalendar() {
   S.events.forEach(e => (items[e.date] = items[e.date] || []).push(`<button class="cal-ev ${e.kind}" data-ev="${e.id}" title="${esc(e.title)}${e.time ? ' · ' + esc(e.time) : ''}">${esc(e.time ? e.time.replace(':00', '').replace(' ', '').toLowerCase() + ' ' : '')}${esc(e.title)}</button>`));
   S.deliverables.filter(d => d.dueAt).forEach(d => {
     const k = isoDay(new Date(d.dueAt));
-    const done = role() === 'pledge' && statusOf(d, S.me.uid).key === 'approved';
+    const done = role() === 'pledge' && statusOf(d, meUid()).key === 'approved';
     (items[k] = items[k] || []).push(`<button class="cal-ev due${done ? ' done' : ''}" data-open-d="${d.id}" title="Due: ${esc(d.name)}">${esc(d.name)}</button>`);
   });
   const n = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 0).getDate();
@@ -826,7 +849,7 @@ function pledgeTable(list) {
 document.addEventListener('click', e => { const r = e.target.closest('tr[data-go]'); if (r && !e.target.closest('select, input, button, a')) location.hash = r.dataset.go; });
 
 function vEducatorHome() {
-  setTitle(`Welcome, ${first(S.me.name)}`);
+  setTitle(`Welcome, ${first(meName())}`);
   const ps = pledges(), q = reviewQueue();
   const all = ps.map(pledgeStats);
   const sum = k => all.reduce((n, x) => n + x[k], 0);
@@ -834,7 +857,7 @@ function vEducatorHome() {
     <div class="stats">
       ${stat('To review', q.length, q.length ? `Oldest ${ago(q[0].submittedAt)}` : 'All caught up', '', '#/review')}
       ${stat('Needs revision', sum('revision'), 'Waiting on pledges', sum('revision') ? 'warn' : '')}
-      ${stat('Missing / late', sum('missing'), 'Past due, not submitted', sum('missing') ? 'alert' : '', '#/pledges?f=missing')}
+      ${stat('Missing / late', sum('missing'), 'Past due, not submitted', sum('missing') ? 'alert' : '', '#/grades?f=missing')}
       ${stat('My pledges', ps.length, ps.length ? `${Math.round(all.reduce((n, x) => n + x.pct, 0) / ps.length)}% average progress` : '')}
     </div>
     <div class="cols">
@@ -886,7 +909,7 @@ function vVpmHome(_, qs) {
       ${stat('Class completion', `${totalCells ? Math.round(sum('approved') / totalCells * 100) : 0}%`, `${sum('approved')} of ${totalCells} approved`)}
       ${stat('To review', reviewQueue().length, 'Waiting on educators', '', '#/review')}
       ${stat('Needs revision', sum('revision'), 'Waiting on pledges', sum('revision') ? 'warn' : '')}
-      ${stat('Missing / late', sum('missing'), 'Past due, not submitted', sum('missing') ? 'alert' : '', '#/pledges?f=missing')}
+      ${stat('Missing / late', sum('missing'), 'Past due, not submitted', sum('missing') ? 'alert' : '', '#/grades?f=missing')}
     </div>
     <div class="card" style="margin-bottom:20px">
       <div class="card-head"><h2>Progress matrix</h2><span class="grow"></span>
@@ -950,13 +973,96 @@ function vPledge(uid) {
       </div>`).join('') || '<div class="empty">No deliverables yet.</div>'}</div>`);
 }
 
+/* ───────────── grades & lateness (educator: own pledges · VPM: everyone) ───────────── */
+
+function gradeStats(p) {
+  const rows = S.deliverables.map(d => ({ d, st: statusOf(d, p.uid) }));
+  const graded = rows.filter(r => r.st.s?.grade != null).map(r => r.st.s.grade);
+  const submitted = rows.filter(r => r.st.s && r.d.dueAt);
+  const late = rows.filter(r => r.st.s?.late).length;
+  return {
+    avg: graded.length ? Math.round(graded.reduce((a, b) => a + b, 0) / graded.length * 10) / 10 : null,
+    graded: graded.length,
+    approved: rows.filter(r => r.st.key === 'approved').length,
+    onTime: submitted.length ? Math.round(submitted.filter(r => !r.st.s.late).length / submitted.length * 100) : null,
+    late, missing: rows.filter(r => r.st.key === 'missing').length,
+  };
+}
+const daysBetween = (a, b) => Math.max(0, Math.round((Date.parse(b) - Date.parse(a)) / DAY * 10) / 10);
+const lateText = days => days < 1 ? `${Math.max(1, Math.round(days * 24))}h` : `${Math.round(days)} day${Math.round(days) === 1 ? '' : 's'}`;
+
+function vGrades(_, qs) {
+  setTitle('Grades & lateness');
+  const f = qs.get('f') || 'all';
+  const ps = pledges();
+  const ds = S.deliverables;
+  /* Every past-due deliverable that is missing or came in late */
+  const issues = ps.flatMap(p => ds.filter(d => d.dueAt).map(d => ({ p, d, st: statusOf(d, p.uid) })))
+    .filter(x => x.st.key === 'missing' || x.st.s?.late)
+    .filter(x => f === 'all' || (f === 'missing' ? x.st.key === 'missing' : x.st.s?.late))
+    .sort((a, b) => b.d.dueAt.localeCompare(a.d.dueAt) || a.p.name.localeCompare(b.p.name));
+  const counts = { all: 0, missing: 0, late: 0 };
+  ps.forEach(p => ds.filter(d => d.dueAt).forEach(d => { const st = statusOf(d, p.uid); if (st.key === 'missing') { counts.missing++; counts.all++; } else if (st.s?.late) { counts.late++; counts.all++; } }));
+  const cell = (p, d) => { const st = statusOf(d, p.uid);
+    if (st.s?.grade != null) return `<td class="gb-cell"><a href="#/review/${st.s.id}" class="gb-grade${st.s.late ? ' late' : ''}" title="${esc(d.name)}${st.s.late ? ' (late)' : ''}">${st.s.grade}</a></td>`;
+    if (st.s) return `<td class="gb-cell"><a href="#/review/${st.s.id}" class="gb-mark ${st.cell || st.key}" title="${esc(d.name)}: ${st.label}${st.s.late ? ' (late)' : ''}">${st.key === 'approved' ? '✓' : st.key === 'revision' ? 'R' : '•'}</a></td>`;
+    return `<td class="gb-cell"><span class="gb-mark ${st.key}" title="${esc(d.name)}: ${st.missing ? 'missing' : 'not due yet'}">${st.missing ? 'M' : ''}</span></td>`; };
+
+  view(`
+    <div class="page-intro"><p>Who turned in what, when, and how it was graded${role() === 'educator' ? ' for your pledges' : ' across the whole class'}. Grades are out of 100.</p></div>
+
+    <div class="card" style="margin-bottom:48px"><div class="card-head"><h2>By pledge</h2></div>
+      ${ps.length ? `<div class="table-wrap"><table class="t"><thead><tr><th>Pledge</th>${role() === 'vpm' ? '<th>Educator</th>' : ''}<th>Average grade</th><th>Approved</th><th>On time</th><th>Late</th><th>Missing</th></tr></thead><tbody>
+        ${ps.map(p => { const g = gradeStats(p); return `<tr class="click" data-go="#/pledge/${p.uid}">
+          <td><div class="person"><div class="avatar sm">${initials(p.name)}</div><b>${esc(p.name)}</b></div></td>
+          ${role() === 'vpm' ? `<td>${esc(byUid(p.educatorUid)?.name || '—')}</td>` : ''}
+          <td><b class="gb-avg">${g.avg ?? '—'}</b>${g.graded ? ` <span class="small muted">(${g.graded} graded)</span>` : ''}</td>
+          <td>${g.approved}/${ds.length}</td>
+          <td>${g.onTime == null ? '<span class="muted">—</span>' : `${g.onTime}%`}</td>
+          <td>${g.late ? `<span class="pill late">${g.late}</span>` : '<span class="muted">0</span>'}</td>
+          <td>${g.missing ? `<span class="pill missing">${g.missing}</span>` : '<span class="muted">0</span>'}</td></tr>`; }).join('')}
+      </tbody></table></div>` : '<div class="empty">No pledges yet.</div>'}
+    </div>
+
+    <div class="card" style="margin-bottom:48px"><div class="card-head"><h2>Late or missing</h2><span class="grow"></span>
+      <div class="tabs">${[['all', 'All'], ['missing', 'Never turned in'], ['late', 'Turned in late']].map(([k, l]) => `<button class="${k === f ? 'on' : ''}" data-gf="${k}">${l}<span>${counts[k]}</span></button>`).join('')}</div></div>
+      ${issues.length ? `<div class="table-wrap"><table class="t"><thead><tr><th>Pledge</th><th>Deliverable</th><th>Was due</th><th>Turned in</th><th>How late</th><th>Status</th></tr></thead><tbody>
+        ${issues.map(({ p, d, st }) => `<tr class="click" data-go="${st.s ? `#/review/${st.s.id}` : `#/pledge/${p.uid}`}">
+          <td><b>${esc(p.name)}</b></td><td>${esc(d.name)} <span class="small muted">· Week ${d.week}</span></td>
+          <td class="nowrap">${fmtDue(d.dueAt)}</td>
+          <td class="nowrap">${st.s ? fmtDue(st.s.firstSubmittedAt || st.s.submittedAt) : '<span class="late-text">Not turned in</span>'}</td>
+          <td class="nowrap late-text">${st.s ? `${lateText(daysBetween(d.dueAt, st.s.firstSubmittedAt || st.s.submittedAt))} late` : `${lateText(daysBetween(d.dueAt, new Date().toISOString()))} overdue`}</td>
+          <td>${pill(st)}</td></tr>`).join('')}
+      </tbody></table></div>` : '<div class="empty">Nothing late or missing. Everyone is on time.</div>'}
+    </div>
+
+    <div class="card"><div class="card-head"><h2>Gradebook</h2><span class="grow"></span><button class="btn sm" id="gbExport">${I.dl}Export CSV</button></div>
+      ${ps.length && ds.length ? `<div class="table-wrap"><table class="t gradebook"><thead><tr><th>Pledge</th>${ds.map(d => `<th title="${esc(d.name)}"><span>W${d.week}</span>${esc(d.name.length > 16 ? d.name.slice(0, 15) + '…' : d.name)}</th>`).join('')}<th>Avg</th></tr></thead><tbody>
+        ${ps.map(p => `<tr><td><b>${esc(p.name)}</b></td>${ds.map(d => cell(p, d)).join('')}<td><b class="gb-avg">${gradeStats(p).avg ?? '—'}</b></td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="legend" style="margin-top:14px"><span><b class="gb-grade">92</b> Grade</span><span><b class="gb-grade late">85</b> Graded, turned in late</span><span><b class="gb-mark approved">✓</b> Approved, no grade</span><span><b class="gb-mark submitted">•</b> Waiting for review</span><span><b class="gb-mark revision">R</b> Needs revision</span><span><b class="gb-mark missing">M</b> Missing</span></div>`
+      : '<div class="empty">Grades will show here once deliverables are reviewed.</div>'}
+    </div>`);
+  $$('[data-gf]').forEach(b => b.onclick = () => { location.hash = b.dataset.gf === 'all' ? '#/grades' : `#/grades?f=${b.dataset.gf}`; });
+  $('#gbExport')?.addEventListener('click', () => {
+    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const head = ['Pledge', 'Educator', ...ds.map(d => `W${d.week} ${d.name}`), 'Average grade', 'Approved', 'On time %', 'Late', 'Missing'];
+    const rows = ps.map(p => { const g = gradeStats(p);
+      return [p.name, byUid(p.educatorUid)?.name || '', ...ds.map(d => { const st = statusOf(d, p.uid); return st.s?.grade ?? (st.missing ? 'Missing' : st.s ? st.label : ''); }), g.avg ?? '', `${g.approved}/${ds.length}`, g.onTime ?? '', g.late, g.missing]; });
+    const csv = [head, ...rows].map(r => r.map(q).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `Beta Pi gradebook ${isoDay(new Date())}.csv`; a.click();
+  });
+}
+
 /* ───────────── review queue + review screen ───────────── */
 
 const REVIEW_TABS = [['todo', 'To review', s => s.status === 'submitted'], ['revision', 'Needs revision', s => s.status === 'needs_revision'], ['approved', 'Approved', s => s.status === 'approved'], ['all', 'All', () => true]];
 let reviewTab = 'todo';
 const reviewList = tab => {
   const test = (REVIEW_TABS.find(t => t[0] === tab) || REVIEW_TABS[0])[2];
-  const list = S.submissions.filter(s => deliv(s.deliverableId) && byUid(s.pledgeUid) && test(s));
+  const list = S.submissions.filter(s => deliv(s.deliverableId) && byUid(s.pledgeUid) && visibleSub(s) && test(s));
   return tab === 'todo' ? list.sort((a, b) => a.submittedAt.localeCompare(b.submittedAt)) : list.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
 };
 
@@ -1008,6 +1114,8 @@ async function vReview(id) {
         <section><h4>Activity</h4>${timeline(s)}</section>
       </div>
       <div class="rpanel-foot">
+        <div class="grade-row"><label for="rGrade">Grade</label><input class="input" id="rGrade" type="number" inputmode="decimal" min="0" max="100" step="0.5" placeholder="–" value="${s.grade ?? ''}"><span>/ 100</span>
+          <span class="grow"></span><span class="small muted">${s.grade != null ? `Graded by ${esc(s.gradedByName || '')}` : 'Optional'}</span></div>
         <textarea class="textarea" id="rComment" placeholder="Feedback for ${esc(first(p?.name))}${reviewed ? '' : ' (optional when approving)'}"></textarea>
         <div class="acts">
           <button class="btn ok" id="rApprove" ${s.status === 'approved' ? 'disabled' : ''}>Approve <kbd>A</kbd></button>
@@ -1042,10 +1150,14 @@ async function vReview(id) {
   /* Approve / revise / comment, then move straight to the next submission */
   const act = async action => {
     const comment = $('#rComment').value.trim();
-    if (action !== 'approve' && !comment) { $('#rComment').focus(); toast(action === 'revise' ? 'Tell the pledge what to change.' : 'Write a comment first.', true); return; }
+    const gradeRaw = $('#rGrade').value.trim();
+    const grade = gradeRaw === '' ? null : Number(gradeRaw);
+    if (grade !== null && (!Number.isFinite(grade) || grade < 0 || grade > 100)) { $('#rGrade').focus(); toast('Grades go from 0 to 100.', true); return; }
+    if (action === 'comment' && !comment && grade !== null && grade !== s.grade) { /* grade-only update */ }
+    else if (action !== 'approve' && !comment) { $('#rComment').focus(); toast(action === 'revise' ? 'Tell the pledge what to change.' : 'Write a comment first.', true); return; }
     $$('.rpanel-foot .btn').forEach(b => b.disabled = true);
     try {
-      const r = await api('POST', `review/${id}`, { action, comment });
+      const r = await api('POST', `review/${id}`, { action, comment, grade });
       S.submissions[S.submissions.findIndex(x => x.id === id)] = r.submission; indexSubs(); renderShell();
       if (action === 'comment') { toast('Comment added.'); return vReview(id); }
       toast(action === 'approve' ? `Approved ${first(p?.name)}'s ${d.name}.` : `Revision requested from ${first(p?.name)}.`);
