@@ -239,7 +239,20 @@ function showAuth(mode = 'signin', msg = '') {
       <h2>Access paused</h2><p class="lead">${esc(msg)}</p>
       <p class="auth-alt"><button data-auth="signout">Sign out</button></p>`,
   };
-  body.innerHTML = views[mode] + (EMULATED ? '<p class="auth-note">Local test mode: using the Firebase emulators.</p>' : '');
+  /* Local emulator only: one-click sign-in as the sample accounts from scripts/seed-emulator.js */
+  const demo = EMULATED && ['signin', 'signup', 'claim'].includes(mode) ? `
+    <div class="auth-note"><b>Local test mode.</b> Jump in as a sample account:
+      <div class="row wrap" style="margin-top:10px;gap:8px">
+        <button class="btn sm primary" data-demo="pledge1@test.local">Pledge</button>
+        <button class="btn sm" data-demo="educator@test.local">Pledge Educator</button>
+        <button class="btn sm" data-demo="vpm@test.local">VPM</button>
+      </div></div>` : '';
+  body.innerHTML = views[mode] + demo;
+  $$('[data-demo]', body).forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try { if (auth.currentUser) await auth.signOut(); await auth.signInWithEmailAndPassword(b.dataset.demo, 'emulator-only-123'); location.hash = '#/home'; }
+    catch (x) { b.disabled = false; $('#aErr') && ($('#aErr').textContent = `${authError(x)} Run node scripts/seed-emulator.js first.`); }
+  });
   const form = $('#aForm');
   setTimeout(() => form?.querySelector('input')?.focus(), 30);
   form?.addEventListener('submit', async e => {
@@ -362,7 +375,7 @@ function ditem(d, uid = S.me.uid) {
   return `<li class="ditem" data-open-d="${d.id}">
     <div class="wk"><span>Week</span><b>${d.week}</b></div>
     <div class="body"><div class="name">${esc(d.name)}</div><div class="due ${due.cls}">${due.text}</div></div>
-    <div class="act">${pill(st)}${cta ? `<button class="btn sm ${st.key === 'revision' ? 'gold' : 'primary'}">${cta}</button>` : ''}</div>
+    <div class="act">${pill(st)}${cta ? `<button class="btn sm ${st.key === 'revision' ? 'fix' : ''}">${cta}</button>` : ''}</div>
   </li>`;
 }
 
@@ -421,7 +434,7 @@ function vPledgeHome() {
     .sort((a, b) => b.at.localeCompare(a.at)).slice(0, 5);
 
   view(`
-    <section class="week-hero" style="background-image:url('${weekPhoto(n)}')"><div>
+    <section class="week-hero"><div class="wh-photo" style="background-image:url('${weekPhoto(n)}')" role="img" aria-label="Golf course, hole ${n}"></div><div class="wh-copy">
       <p class="eyebrow light">${wk === 0 ? `Starts ${fmtDay(S.program.startDate + 'T00:00')} · Hole 1` : weekLabel(n)}</p>
       <h1>${esc(W.title || `Week ${n}`)}</h1>
       ${W.hole ? `<div class="hole">${esc(W.hole)}</div>` : ''}
@@ -492,7 +505,7 @@ function vWeek(nStr) {
     return `<li class="ditem" data-open-d="${d.id}"><div class="wk"><span>Week</span><b>${n}</b></div><div class="body"><div class="name">${esc(d.name)}</div><div class="due">${dueInfo(d, true).text}</div></div>
       <div class="act"><span class="pill approved">${c.done}/${pledges().length}</span>${sub ? `<span class="pill submitted">${sub} to review</span>` : ''}${miss ? `<span class="pill missing">${miss} missing</span>` : ''}</div></li>`; };
   view(`
-    <section class="week-hero" style="background-image:url('${weekPhoto(n)}')"><div>
+    <section class="week-hero"><div class="wh-photo" style="background-image:url('${weekPhoto(n)}')" role="img" aria-label="Golf course, hole ${n}"></div><div class="wh-copy">
       <p class="eyebrow light">${weekLabel(n)}${n === currentWeek() ? ' · This week' : ''}</p>
       <h1>${esc(W.title || `Week ${n}`)}</h1>
       ${W.hole ? `<div class="hole">${esc(W.hole)}</div>` : ''}
