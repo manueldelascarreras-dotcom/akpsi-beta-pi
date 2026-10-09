@@ -193,27 +193,31 @@ const AUTH_ERRORS = {
 };
 const authError = e => AUTH_ERRORS[e.code] || e.message || 'Something went wrong.';
 
-function showAuth(mode = 'signin', msg = '') {
+function showAuth(mode = 'signin', msg = '', prefill = {}) {
   $('#boot').hidden = true; $('#app').hidden = true; $('#auth').hidden = false;
   const body = $('#authBody');
   const views = {
     signin: `
-      <h2>Welcome back</h2><p class="lead">Sign in to the Beta Pi pledge portal.</p>
+      <h2>Sign in</h2><p class="lead">Welcome back to the pledge portal.</p>
       <form id="aForm" novalidate>
-        <label class="f"><span>Email</span><input class="input" type="email" name="email" autocomplete="email" required></label>
-        <label class="f"><span>Password</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
-        <div class="row"><span class="grow"></span><button type="button" class="linkish small" data-auth="reset">Forgot password?</button></div>
-        <p class="error" id="aErr">${esc(msg)}</p>
+        <label class="f"><span>Email</span><input class="input" type="email" name="email" autocomplete="email" placeholder="you@miami.edu" required></label>
+        <label class="f"><span class="row">Password<span class="grow"></span><button type="button" class="linkish small" data-auth="reset">Forgot?</button></span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
+        <p class="error" id="aErr" role="alert">${esc(msg)}</p>
         <button class="btn primary" type="submit">Sign in</button>
       </form>
-      <p class="auth-alt">First time here? <button data-auth="signup">Create your account</button></p>`,
+      <div class="auth-or"><span>New pledge?</span></div>
+      <form id="codeForm" class="code-form" novalidate>
+        <label class="f"><span>Invite code</span>
+          <div class="code-row"><input class="input code-input" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD2345" maxlength="12" required><button class="btn" type="submit">Continue</button></div>
+          <small>From your VPM. It sets up your account once.</small></label>
+      </form>`,
     signup: `
       <h2>Create your account</h2><p class="lead">You’ll need the invite code from your VPM. It works once.</p>
       <form id="aForm" novalidate>
+        <label class="f"><span>Invite code</span><input class="input code-input" name="code" autocomplete="off" value="${esc(prefill.code || '')}" required></label>
         <label class="f"><span>Full name</span><input class="input" name="name" autocomplete="name" required></label>
         <label class="f"><span>Email</span><input class="input" type="email" name="email" autocomplete="email" required></label>
         <label class="f"><span>Password</span><input class="input" type="password" name="password" autocomplete="new-password" minlength="8" required><small>At least 8 characters.</small></label>
-        <label class="f"><span>Invite code</span><input class="input" name="code" autocomplete="off" style="text-transform:uppercase;letter-spacing:.12em" required></label>
         <p class="error" id="aErr">${esc(msg)}</p>
         <button class="btn primary" type="submit">Create account</button>
       </form>
@@ -230,7 +234,7 @@ function showAuth(mode = 'signin', msg = '') {
       <h2>One more step</h2><p class="lead">Enter the invite code from your VPM to finish setting up <b>${esc(auth.currentUser?.email || '')}</b>.</p>
       <form id="aForm" novalidate>
         <label class="f"><span>Full name</span><input class="input" name="name" autocomplete="name" required></label>
-        <label class="f"><span>Invite code</span><input class="input" name="code" autocomplete="off" style="text-transform:uppercase;letter-spacing:.12em" required></label>
+        <label class="f"><span>Invite code</span><input class="input code-input" name="code" autocomplete="off" required></label>
         <p class="error" id="aErr">${esc(msg)}</p>
         <button class="btn primary" type="submit">Continue</button>
       </form>
@@ -254,7 +258,14 @@ function showAuth(mode = 'signin', msg = '') {
     catch (x) { b.disabled = false; $('#aErr') && ($('#aErr').textContent = `${authError(x)} Run node scripts/seed-emulator.js first.`); }
   });
   const form = $('#aForm');
-  setTimeout(() => form?.querySelector('input')?.focus(), 30);
+  setTimeout(() => (prefill.code ? form?.querySelector('[name=name]') : form?.querySelector('input'))?.focus(), 30);
+  /* Invite code below sign-in: carry the code into account creation */
+  $('#codeForm')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const code = new FormData(e.target).get('code').trim().toUpperCase();
+    if (!code) { e.target.querySelector('input').focus(); return; }
+    showAuth('signup', '', { code });
+  });
   form?.addEventListener('submit', async e => {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(form));
@@ -698,7 +709,7 @@ function vCalendar() {
           ${cells.map(d => { if (!d) return '<div class="cal-blank"></div>'; const k = isoDay(d);
             return `<div class="cal-day ${k === today ? 'today' : ''} ${k < today ? 'past' : ''} ${edit ? 'editable' : ''}" data-day="${k}"><span class="cal-num">${d.getDate()}</span>${(items[k] || []).join('')}</div>`; }).join('')}
         </div>
-        <div class="cal-legend"><span><i style="background:var(--navy)"></i>Meeting</span><span><i style="background:var(--green-3)"></i>Event</span><span><i style="background:var(--gold)"></i>Due date</span></div>
+        <div class="cal-legend"><span><i style="background:var(--navy)"></i>Meeting</span><span><i style="background:var(--brand-ink)"></i>Event</span><span><i style="background:var(--gold)"></i>Due date</span></div>
       </div></div>
       <div><div class="card"><div class="card-head"><h2>Coming up</h2></div>
         ${upcoming.length ? `<ul class="feed">${upcoming.map(u => `<li ${u.id ? `data-open-d="${u.id}" style="cursor:pointer"` : ''}><div class="txt"><b>${esc(u.t)}</b><p>${fmt(u.at + 'T00:00', { weekday: 'short', month: 'short', day: 'numeric' })}${u.sub && u.kind !== 'due' ? ` · ${esc(u.sub)}` : ''}</p></div></li>`).join('')}</ul>` : '<div class="empty">Nothing scheduled.</div>'}
@@ -790,7 +801,7 @@ function matrix(ps) {
   const firstOf = new Set(weeks.map(w => w.list[0].id));
   return `<div class="matrix-wrap"><table class="matrix">
     <thead>
-      <tr class="wk-row"><th class="corner" rowspan="2">Pledge</th>${weeks.map(w => `<th colspan="${w.list.length}">Week ${w.n}<small>Hole ${w.n}</small></th>`).join('')}<th rowspan="2" class="corner" style="position:sticky;left:auto;border-left:1px solid var(--line)">Done</th></tr>
+      <tr class="wk-row"><th class="corner" rowspan="2">Pledge</th>${weeks.map(w => `<th colspan="${w.list.length}">Week ${w.n}<small>Hole ${w.n}</small></th>`).join('')}<th rowspan="2" class="corner" style="position:sticky;left:auto;border-left:1px solid var(--rule)">Done</th></tr>
       <tr class="d-row">${weeks.flatMap(w => w.list).map(d => `<th class="${firstOf.has(d.id) ? 'first-of-week' : ''}" title="${esc(d.name)}"><span>${esc(d.name)}</span></th>`).join('')}</tr>
     </thead>
     <tbody>${ps.map(p => { const x = pledgeStats(p); return `<tr>
@@ -799,7 +810,7 @@ function matrix(ps) {
         return `<td class="cell ${firstOf.has(d.id) ? 'first-of-week' : ''}">${st.s ? `<a class="sq ${cls}" href="#/review/${st.s.id}" title="${esc(tip)}"></a>` : `<span class="sq ${cls}" title="${esc(tip)}"></span>`}</td>`; }).join('')}
       <td class="pct">${x.pct}%</td></tr>`; }).join('')}</tbody>
   </table></div>
-  <div class="card-body" style="border-top:1px solid var(--line-2)"><div class="legend">
+  <div class="card-body" style="border-top:1px solid var(--rule-2)"><div class="legend">
     <span><i class="sq approved"></i>Approved</span><span><i class="sq submitted"></i>Submitted, waiting for review</span><span><i class="sq revision"></i>Needs revision</span>
     <span><i class="sq late-sub"></i>Submitted late</span><span><i class="sq missing"></i>Missing (past due)</span><span><i class="sq"></i>Not due yet</span>
   </div></div>`;
@@ -874,7 +885,7 @@ function vPledge(uid) {
   view(`
     <div class="card" style="margin-bottom:20px"><div class="card-body row wrap" style="gap:18px">
       <div class="avatar" style="width:54px;height:54px;font-size:1rem">${initials(p.name)}</div>
-      <div class="grow"><h2 class="serif" style="font-size:1.8rem;color:var(--green);line-height:1.1">${esc(p.name)}</h2>
+      <div class="grow"><h2 class="serif" style="font-size:1.8rem;color:var(--brand);line-height:1.1">${esc(p.name)}</h2>
         <p class="muted small">${[p.email, `Educator: ${byUid(p.educatorUid)?.name || 'not assigned'}`].filter(Boolean).map(esc).join(' · ')}</p></div>
       <div class="row" style="gap:8px">${pill({ key: 'approved', label: `${x.approved} approved` })}${x.review ? pill({ key: 'submitted', label: `${x.review} to review` }) : ''}${x.revision ? pill({ key: 'revision', label: `${x.revision} revision` }) : ''}${x.missing ? pill({ key: 'missing', label: `${x.missing} missing` }) : ''}</div>
     </div></div>
@@ -1057,7 +1068,7 @@ function vPeople(_, qs) {
   const inviteStatus = i => i.usedBy ? `<span class="pill approved">Used by ${esc(i.usedByName || '')}</span>` : i.expiresAt < new Date().toISOString() ? '<span class="pill missing">Expired</span>' : `<span class="pill notstarted">Unused · expires ${fmtDay(i.expiresAt)}</span>`;
   const bodies = {
     pledges: ps.length ? `
-      <div class="card-body row wrap" style="border-bottom:1px solid var(--line-2);gap:8px">
+      <div class="card-body row wrap" style="border-bottom:1px solid var(--rule-2);gap:8px">
         <span class="small muted">Assign selected to</span><select class="select" id="bulkEd" style="width:auto">${edOptions('')}</select>
         <button class="btn sm primary" id="bulkGo" disabled>Assign</button><span class="small muted" id="bulkCount"></span>
       </div>
@@ -1068,7 +1079,7 @@ function vPeople(_, qs) {
       ${staff.map(p => `<tr><td>${person(p)}</td><td>${roleSel(p)}</td><td>${ps.filter(x => x.educatorUid === p.uid).length}</td><td>${activeBox(p)}</td></tr>`).join('')}
       </tbody></table></div>`,
     invites: `
-      <div class="card-body" style="border-bottom:1px solid var(--line-2)">
+      <div class="card-body" style="border-bottom:1px solid var(--rule-2)">
         <div class="grid2">
           <label class="f"><span>Role</span><select class="select" id="invRole"><option value="pledge">Pledge</option><option value="educator">Pledge Educator</option><option value="vpm">VPM</option></select></label>
           <label class="f" id="invEdWrap"><span>Pledge educator (optional)</span><select class="select" id="invEd">${edOptions('')}</select></label>
