@@ -5,8 +5,8 @@
  */
 :root {
   /* Surfaces (cool paper) */
-  --bg: #EEF1F5;
-  --paper: #F9FAFC;
+  --bg: #FFFFFF;
+  --paper: #FFFFFF;
   --white: #FFFFFF;
   --rule: #D2DAE4;        /* printed rule */
   --rule-2: #E4E9F0;
@@ -20,9 +20,9 @@
   --gold-wash: #F3ECDC;
   --navy: #0F2A4A;
   /* Text */
-  --ink: #14202E;
-  --mid: #46536A;
-  --muted: #75808F;
+  --ink: #0F1E36;
+  --mid: #3D4E66;
+  --muted: #6B7A90;
   /* Status (leaderboard colors) */
   --ok: #1E6A45;
   --wait: #8C6A1C;
@@ -237,7 +237,7 @@ label.f small { display: block; margin-top: 5px; color: var(--muted); font-size:
 .side-user .icon-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
 
 .main { min-width: 0; }
-.topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 14px; height: 62px; padding: 0 36px; background: rgba(238,241,245,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
+.topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 14px; height: 62px; padding: 0 36px; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
 .topbar-title { font-family: var(--display); font-weight: 700; font-size: 1.45rem; color: var(--brand); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar-week { display: flex; align-items: center; gap: 8px; font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 .topbar-week b { color: var(--brand); font-weight: 700; }
@@ -588,3 +588,85 @@ a.cms-row:hover { background: var(--white); }
   .cal-day, .cal-blank { min-height: 64px; padding: 3px; }
   .cal-ev { font-size: .6rem; padding: 1px 3px; }
 }
+
+/* ─── Open layout ───
+ * Modeled on akpsi-phi.com: a white page, almost no boxes. Sections are a bold navy
+ * heading over a hairline; photos have a small radius with plain text underneath.
+ * These rules override the panel styles above.
+ */
+.view { padding: 36px 44px 80px; }
+.card { background: none; border: 0; border-radius: 0; }
+.card-head { padding: 0 0 12px; border-bottom: 1px solid var(--rule); align-items: center; }
+.card-head h2 { font-size: 1.45rem; color: var(--brand); }
+.card-body { padding: 18px 0; }
+.empty { padding: 26px 0; text-align: left; }
+.ditem, .feed li, .qitem, .cms-row { padding-left: 0; padding-right: 0; }
+.ditem:hover, .qitem:hover, table.t tr.click:hover td, a.cms-row:hover { background: #F6F8FB; }
+table.t th:first-child, table.t td:first-child { padding-left: 0; }
+.cols { gap: 56px; }
+.cols > div > * + * { margin-top: 48px; }
+.page-intro p { font-size: 1rem; }
+
+/* Stats: just numbers in a row */
+.stats { background: none; border: 0; border-radius: 0; overflow: visible; margin-bottom: 44px; }
+.stat { padding: 2px 28px; border-left: 1px solid var(--rule); }
+.stat:first-child { padding-left: 0; }
+.stat .k { letter-spacing: .12em; }
+.stat .v { font-size: 2.6rem; }
+a.stat:hover { background: none; }
+a.stat:hover .v { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+
+/* Week header: words on white next to a photo (like a welcome section) */
+.week-hero { background: none; color: var(--ink); border-radius: 0; overflow: visible; min-height: 0; gap: 48px; align-items: center; margin-bottom: 52px; }
+.wh-copy { padding: 0; }
+.wh-photo { min-height: 320px; border-radius: 12px; }
+.wh-photo::after { display: none; }
+.week-hero .eyebrow.light { color: var(--gold-ink); }
+.week-hero h1 { color: var(--brand); font-size: clamp(2.4rem, 4vw, 3.4rem); }
+.week-hero .hole { color: var(--gold-ink); }
+.week-hero p { color: var(--mid); font-size: 1.02rem; line-height: 1.7; }
+.week-hero .meta { border-top-color: var(--rule); color: var(--mid); font-size: .82rem; }
+.week-hero .meta span { border-right-color: var(--rule); }
+.week-hero .meta b { color: var(--ink); }
+.week-hero .btn { border-radius: 999px; padding: 12px 24px; min-height: 46px; }
+
+/* Program: photo, then plain text */
+.holes { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 40px 28px; }
+.hole-card { background: none; border: 0; border-radius: 0; }
+.hole-card:hover { transform: none; }
+.hole-card .ph { margin: 0; height: auto; aspect-ratio: 4 / 3; border-radius: 10px; transition: filter .2s; }
+.hole-card:hover .ph { filter: brightness(1.06) saturate(1.05); }
+.hole-card .info { padding: 14px 0 0; }
+.hole-meta { display: flex; align-items: center; gap: 10px; font-size: .78rem; font-weight: 600; color: var(--muted); }
+.hole-meta .now { display: inline-flex; align-items: center; gap: 6px; color: var(--gold-ink); }
+.hole-card .info h3 { font-size: 1.3rem; color: var(--brand); margin-top: 4px; }
+.hole-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; }
+.hole-card .info .sub { font-size: .86rem; color: var(--mid); margin: 2px 0 14px; }
+.hole-card .info .row { font-size: .78rem; font-weight: 500; color: var(--muted); }
+
+/* Lighter details */
+.ditem .wk { background: none; border: 0; width: 44px; height: auto; }
+.scorecard thead th { background: none; color: var(--brand); border-bottom: 1px solid var(--rule); border-left-color: var(--rule-2); }
+.scorecard thead th:first-child { color: var(--muted); }
+.scorecard thead th.now { background: none; color: var(--gold-ink); box-shadow: inset 0 -2px 0 var(--gold); }
+.scorecard th:first-child, .scorecard td:first-child { padding-left: 0; }
+table.matrix .wk-row th, table.matrix th.corner { background: #fff; color: var(--brand); border-left-color: var(--rule); }
+table.matrix th.corner { color: var(--muted); }
+table.matrix .wk-row th small { color: var(--muted); }
+table.matrix td.who { padding-left: 0; }
+.cms-week-head { background: none; padding-left: 0; padding-right: 0; }
+.topbar { padding: 0 44px; }
+@media (max-width: 860px) {
+  .view { padding: 20px 16px 56px; }
+  .topbar { padding: 0 12px 0 8px; }
+  .week-hero { gap: 18px; }
+  .wh-photo { min-height: 190px; }
+  .stats { grid-template-columns: 1fr 1fr; row-gap: 22px; }
+  .stat { padding: 0 16px; border-top: 0; }
+  .stat:nth-child(odd) { padding-left: 0; border-left: 0; }
+}
+
+/* Pill buttons, as on the chapter sites */
+.btn { border-radius: 999px; }
+.btn.sm { padding: 5px 14px; }
+@media (max-width: 860px) { .hole-card .ph { aspect-ratio: 16 / 9; } .holes { gap: 32px; } }

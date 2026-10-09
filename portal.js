@@ -505,7 +505,7 @@ function vPledgeHome() {
         <span><b>${approved}/${thisWeek.length}</b> approved this week</span>
         ${next ? `<span>Next due: <b>${esc(next.name)}</b></span>` : ''}
       </div>
-      ${next ? `<button class="btn gold" data-open-d="${next.id}">${statusOf(next, S.me.uid).key === 'revision' ? 'Fix and resubmit' : 'Submit'} ${esc(next.name)}</button>` : ''}
+      ${next ? `<button class="btn primary" data-open-d="${next.id}">${statusOf(next, S.me.uid).key === 'revision' ? 'Fix and resubmit' : 'Submit'} ${esc(next.name)}</button>` : ''}
     </div></section>
     <div class="cols">
       <div>
@@ -548,9 +548,12 @@ function vProgram() {
         : classProgress(list);
       const pct = prog.total ? Math.round(prog.done / prog.total * 100) : 0;
       return `<a class="hole-card" href="#/week/${n}">
-        <div class="ph" style="background-image:url('${weekPhoto(n, 700)}')">${n === wk ? '<span class="now-tag"><span class="flag"></span>This week</span>' : ''}<span class="wk-name">Week ${n}</span><small>Hole ${n}</small></div>
-        <div class="info"><h3>${esc(W.title || `Week ${n}`)}</h3><p>${esc([W.hole, rangeText(n)].filter(Boolean).join(' · ')) || '&nbsp;'}</p>
-          <div class="row"><div class="bar grow"><i style="width:${pct}%"></i></div><span>${role() === 'pledge' ? `${prog.done}/${prog.total}` : `${pct}%`}</span></div>
+        <div class="ph" style="background-image:url('${weekPhoto(n, 700)}')" role="img" aria-label="Golf course, hole ${n}"></div>
+        <div class="info">
+          <p class="hole-meta">Week ${n} · Hole ${n}${n === wk ? '<span class="now"><span class="flag"></span>This week</span>' : ''}</p>
+          <h3>${esc(W.title || `Week ${n}`)}</h3>
+          <p class="sub">${esc([W.hole, rangeText(n)].filter(Boolean).join(' · ')) || '&nbsp;'}</p>
+          <div class="row"><div class="bar grow"><i style="width:${pct}%"></i></div><span>${role() === 'pledge' ? `${prog.done} of ${prog.total} approved` : `${pct}% approved`}</span></div>
         </div></a>`;
     }).join('')}</div>`);
 }
