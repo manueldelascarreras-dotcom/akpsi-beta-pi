@@ -539,6 +539,9 @@ async function handlePrivateFile(req, res) {
   } catch { send(res, 404, 'Not found'); }
 }
 
+/* Pledge portal routes live in portal.js */
+const handlePortal = require('./portal')({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug, saveFile, removeFile, clientIp });
+
 /* ───────────────────────── router ───────────────────────── */
 
 exports.api = onRequest({ region: 'us-central1', memory: '512MiB', timeoutSeconds: 120, maxInstances: 3 }, async (req, res) => {
@@ -548,6 +551,7 @@ exports.api = onRequest({ region: 'us-central1', memory: '512MiB', timeoutSecond
     if (pathname === '/api/update' && req.method === 'POST') return await handleMemberUpdate(req, res);
     if (pathname === '/api/update/config' && req.method === 'GET') return send(res, 200, { enabled: (await getSettings()).updatesEnabled });
     if (pathname === '/api/admin/file') return await handlePrivateFile(req, res);
+    if (pathname.startsWith('/api/portal/')) return await handlePortal(req, res, pathname.slice('/api/portal/'.length));
     if (pathname.startsWith('/api/admin/')) return await handleAdmin(req, res, pathname.slice('/api/admin/'.length));
     return send(res, 404, { error: 'Not found' });
   } catch (e) {

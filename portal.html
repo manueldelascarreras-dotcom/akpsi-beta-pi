@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pledge Portal | Alpha Kappa Psi Beta Pi</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0F3B2E">
+  <link rel="icon" href="images/crest.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="portal.css" />
+</head>
+<body>
+  <!-- Shown until we know whether someone is signed in -->
+  <div class="boot" id="boot"><img src="images/crest.png" alt=""><span></span></div>
+
+  <!-- Sign in / create account -->
+  <main class="auth" id="auth" hidden>
+    <div class="auth-photo" aria-hidden="true">
+      <div class="auth-photo-copy">
+        <p class="eyebrow light">Alpha Kappa Psi · Beta Pi</p>
+        <h1>The Pledge <em>Program</em></h1>
+        <p>Eight weeks. Eight holes. One class.</p>
+      </div>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-card">
+        <a href="index.html" class="auth-brand"><img src="images/crest.png" alt="">Beta Pi</a>
+        <div id="authBody"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- The portal itself -->
+  <div class="app" id="app" hidden>
+    <aside class="side" id="side">
+      <a href="#/home" class="side-brand"><img src="images/crest.png" alt=""><span>Beta Pi<small>Pledge Portal</small></span></a>
+      <nav class="side-nav" id="sideNav" aria-label="Portal"></nav>
+      <div class="side-user" id="sideUser"></div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <div class="topbar-title" id="topTitle"></div>
+        <div class="topbar-week" id="topWeek"></div>
+      </header>
+      <div class="view" id="view"></div>
+    </div>
+  </div>
+
+  <div class="drawer-wrap" id="drawerWrap" hidden><aside class="drawer" id="drawer" role="dialog" aria-modal="true"></aside></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="portal.js"></script>
+</body>
+</html>

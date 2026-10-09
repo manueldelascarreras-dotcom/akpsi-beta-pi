@@ -13,6 +13,22 @@ node server.js
 
 Locally the site reads and writes the files in `data/` and `private/`. The live site does not use these files: it reads and saves everything in Firebase (see below), so make content changes in the live CMS.
 
+## Pledge Portal
+
+`portal.html` is the 8-week pledge program platform (linked in every footer). One login, three roles:
+
+| Role | Sees |
+|---|---|
+| Pledge | Their weeks (Week 1–8, each a "hole"), deliverables with due dates and status, feedback, calendar, resources. A deliverable submits in a few clicks: open it (or drag a file onto it), drop the file, Submit. |
+| Pledge Educator | Only their assigned pledges. Dashboard → Review queue → file opens in the browser → comment → Approve or Request revision → next one loads. Shortcuts: A approve, R revise, J/K next/previous, ⌘ Enter approve while typing. |
+| VPM | Everything: progress matrix (pledges × deliverables, green/yellow/red), completion by week, all reviews, People & access (roles, educator assignments, invite codes), and the Program CMS (weeks, deliverables, resources, announcements, calendar). |
+
+Accounts use Firebase Authentication (email + password, with reset emails). Invite codes are single-use and only for creating an account; the code sets the role. VPMs make codes in **People & access → Invite codes**.
+
+Statuses: Not Started, Submitted, Late, Needs Revision, Approved. The full design and data model are in `docs/pledge-portal-plan.md`.
+
+Try it locally with sample data: run `firebase emulators:start`, then `node scripts/seed-emulator.js`, and open http://127.0.0.1:5002/portal.html (test logins are listed at the top of the seed script; they only exist in the emulator).
+
 ## Pages
 
 | Page | What's on it |

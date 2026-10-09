@@ -2,19 +2,88 @@
   "hosting": {
     "public": ".",
     "ignore": [
-      "firebase.json", ".firebaserc", "firestore.rules", "storage.rules", "firestore.indexes.json",
-      "**/.*", "**/node_modules/**", "functions/**", "private/**", "server.js", "server.log",
-      "README.md", "*.csv", "seed-firestore.js"
+      "firebase.json",
+      ".firebaserc",
+      "firestore.rules",
+      "storage.rules",
+      "firestore.indexes.json",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**",
+      "private/**",
+      "server.js",
+      "server.log",
+      "README.md",
+      "*.csv",
+      "seed-firestore.js",
+      "docs/**",
+      "scripts/**"
     ],
     "rewrites": [
-      { "source": "/api/**", "function": { "functionId": "api", "region": "us-central1" } }
+      {
+        "source": "/api/**",
+        "function": {
+          "functionId": "api",
+          "region": "us-central1"
+        }
+      }
     ],
     "headers": [
-      { "source": "**/*.@(html|js|css|json)", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
-      { "source": "images/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] }
+      {
+        "source": "**/*.@(html|js|css|json)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "images/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=86400"
+          }
+        ]
+      }
     ]
   },
-  "functions": { "source": "functions", "runtime": "nodejs22" },
-  "firestore": { "rules": "firestore.rules", "indexes": "firestore.indexes.json" },
-  "storage": { "rules": "storage.rules" }
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs22"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true
+    }
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "storage": {
+      "port": 9199
+    },
+    "hosting": {
+      "port": 5002
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  }
 }
