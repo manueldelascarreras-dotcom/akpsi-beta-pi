@@ -2,56 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pledge Portal | Alpha Kappa Psi Beta Pi</title>
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#1B2B4B">
-  <link rel="icon" href="images/crest.png" type="image/png">
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=GFS+Didot&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="portal.css" />
+  <title>Pledge Portal | Alpha Kappa Psi Beta Pi</title>
+  <!-- The portal moved to the site's home page. Keep old links (and invite messages) working. -->
+  <script>location.replace('./' + location.hash);</script>
+  <meta http-equiv="refresh" content="0; url=./">
 </head>
-<body>
-  <!-- Shown until we know whether someone is signed in -->
-  <div class="boot" id="boot"><img src="images/crest.png" alt=""><span></span></div>
-
-  <!-- Sign in / create account -->
-  <main class="auth" id="auth" hidden>
-    <header class="auth-nav">
-      <a href="index.html" class="an-brand"><img src="images/crest.png" alt=""><span class="an-greek" aria-hidden="true">ΑΚΨ</span><span class="an-name"><b>Alpha Kappa Psi</b><small>Beta Pi Chapter</small></span></a>
-      <nav class="an-links" aria-label="Chapter site">
-        <a href="index.html">Home</a><a href="about.html">About</a><a href="philanthropy.html">Philanthropy</a><a href="members.html">Members</a><a href="events.html">Events</a><a href="apply.html">Apply</a>
-      </nav>
-      <a class="an-pill" href="portal.html" aria-current="page">Pledge portal</a>
-    </header>
-    <div class="auth-body"><div class="auth-card" id="authBody"></div></div>
-    <p class="auth-foot">Alpha Kappa Psi · Beta Pi Chapter · University of Miami</p>
-  </main>
-
-  <!-- The portal itself -->
-  <div class="app" id="app" hidden>
-    <aside class="side" id="side">
-      <a href="#/home" class="side-brand"><img src="images/crest.png" alt=""><span>Beta Pi<small>Pledge Portal</small></span></a>
-      <nav class="side-nav" id="sideNav" aria-label="Portal"></nav>
-      <div class="side-user" id="sideUser"></div>
-    </aside>
-    <div class="main">
-      <div class="preview-bar" id="previewBar" hidden></div>
-      <header class="topbar">
-        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-        <div class="topbar-title" id="topTitle"></div>
-        <div class="topbar-week" id="topWeek"></div>
-      </header>
-      <div class="view" id="view"></div>
-    </div>
-  </div>
-
-  <div class="drawer-wrap" id="drawerWrap" hidden><aside class="drawer" id="drawer" role="dialog" aria-modal="true"></aside></div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="portal.js"></script>
-</body>
+<body><a href="./">Go to the pledge portal</a></body>
 </html>

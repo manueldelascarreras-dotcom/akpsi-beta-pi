@@ -4,9 +4,9 @@ const fs = require('fs');
 const [, , file, current] = process.argv;
 let s = fs.readFileSync(file, 'utf8');
 const onHome = current === 'home';
-const home = onHome ? '' : 'index.html';
+const home = onHome ? '' : 'chapter.html';
 const items = [
-  ['home', 'Home', 'index.html'],
+  ['home', 'Home', 'chapter.html'],
   ['about', 'About', 'about.html'],
   ['philanthropy', 'Philanthropy', 'philanthropy.html'],
   ['members', 'Members', 'members.html'],
@@ -25,7 +25,7 @@ ${items.map(([, label, href]) => `    <a href="${href}">${label}</a>`).join('\n'
 const footer = `<nav class="footer-links" aria-label="Footer navigation">
 ${items.filter(([k]) => k !== current).map(([, label, href]) => `        <a href="${href}">${label}</a>`).join('\n')}
         <a href="apply.html">Apply</a>
-        <a href="portal.html">Pledge Portal</a>
+        <a href="./">Pledge Portal</a>
         <a data-link="instagram" href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
         <a data-link="tiktok" href="#" target="_blank" rel="noopener noreferrer">TikTok</a>
       </nav>`;

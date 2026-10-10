@@ -108,7 +108,8 @@ module.exports = ({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug
     else {
       const keep = new Set([me.uid, ...visiblePledges.map(p => p.uid)]);
       if (me.user.educatorUid) keep.add(me.user.educatorUid);
-      people = users.filter(u => keep.has(u.uid) || u.role !== 'pledge').map(u => publicUser(u, false));
+      /* Like a class roster: names and roles of everyone active (no emails) */
+      people = users.filter(u => keep.has(u.uid) || u.active !== false).map(u => publicUser(u, false));
     }
 
     const out = {

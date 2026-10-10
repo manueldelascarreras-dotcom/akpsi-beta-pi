@@ -13,9 +13,13 @@ node server.js
 
 Locally the site reads and writes the files in `data/` and `private/`. The live site does not use these files: it reads and saves everything in Firebase (see below), so make content changes in the live CMS.
 
-## Pledge Portal
+## Pledge Portal (the home page)
 
-`portal.html` is the 8-week pledge program platform (linked in every footer). One login, three roles:
+The site's home page (`index.html`) is the 8-week pledge program platform, laid out like Google Classroom: **Stream** (announcements, what's due), **Classwork** (Weeks 1–8 as topics, each with assignments to turn in and materials such as PDFs that open right in the page), **Calendar**, **Grades**, and **People**. VPMs post through **Classwork → Create** (assignment, material, announcement). The old chapter homepage is `chapter.html`; `portal.html` forwards to the home page so old links keep working.
+
+**Preview code:** `TEEOFF26` opens the portal with a sample class (pick Pledge, Pledge educator, or VPM). Nothing is saved. Turn it off by setting `PREVIEW_CODE = ''` near the top of `portal.js` once real pledges are in.
+
+One login, three roles:
 
 | Role | Sees |
 |---|---|
@@ -27,13 +31,14 @@ Accounts use Firebase Authentication (email + password, with reset emails). Invi
 
 Statuses: Not Started, Submitted, Late, Needs Revision, Approved. The full design and data model are in `docs/pledge-portal-plan.md`.
 
-Try it locally with sample data: run `firebase emulators:start`, then `node scripts/seed-emulator.js`, and open http://127.0.0.1:5002/portal.html (test logins are listed at the top of the seed script; they only exist in the emulator).
+Try it locally with sample data: run `firebase emulators:start`, then `node scripts/seed-emulator.js`, and open http://127.0.0.1:5002/ (test logins are listed at the top of the seed script; they only exist in the emulator).
 
 ## Pages
 
 | Page | What's on it |
 |---|---|
-| `index.html` | Home: hero, apply, network, philanthropy preview, weekly calendar, e-board preview |
+| `index.html` | Pledge portal (home page) |
+| `chapter.html` | Chapter homepage: hero, apply, network, philanthropy preview, weekly calendar, e-board preview |
 | `about.html` | About: video, our story, pillars, core values (BUSIK), gallery, stats |
 | `philanthropy.html` | Philanthropy: suicide prevention, 988 support, how to support a friend, philanthropy events |
 | `events.html` | Events: week-by-week calendar plus every upcoming and past event, grouped by month |
