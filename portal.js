@@ -1056,6 +1056,7 @@ document.addEventListener('drop', e => {
  */
 
 let calAnchor = null;   // any date inside the week or month being shown
+let calSel = null;      // the day picked in the Monthly view (YYYY-MM-DD)
 let calMode = (() => { try { return localStorage.getItem('bp-cal-mode') || 'week'; } catch { return 'week'; } })();
 const pad2 = n => String(n).padStart(2, '0');
 const weekStart = d => { const s = new Date(d.getFullYear(), d.getMonth(), d.getDate()); s.setDate(s.getDate() - s.getDay()); return s; };
@@ -1081,6 +1082,12 @@ function vCalendar() {
     const done = role() === 'pledge' && statusOf(d, meUid()).key === 'approved';
     (items[k] = items[k] || []).push(`<button class="cal-ev due${done ? ' done' : ''}" data-open-d="${d.id}" title="Due: ${esc(d.name)}"><b>due</b>${esc(d.name)}</button>`);
   });
+  const agenda = {};
+  S.events.forEach(e => (agenda[e.date] = agenda[e.date] || []).push({ kind: e.kind, time: e.time || '', title: e.title, sub: e.location || '', attr: `data-ev="${e.id}"` }));
+  S.deliverables.filter(d => d.dueAt).forEach(d => { const k = isoDay(new Date(d.dueAt));
+    (agenda[k] = agenda[k] || []).push({ kind: 'due', time: fmt(d.dueAt, { hour: 'numeric', minute: '2-digit' }), title: d.name, sub: `Due · Week ${d.week}`, attr: `data-open-d="${d.id}"`, done: role() === 'pledge' && statusOf(d, meUid()).key === 'approved' }); });
+  Object.values(agenda).forEach(list => list.sort((a, b) => (a.kind === 'due') - (b.kind === 'due') || a.time.localeCompare(b.time)));
+  if (!calSel) calSel = today;
   const edit = role() === 'vpm';
   const week = calMode === 'week';
   const ws = weekStart(calAnchor);
@@ -1098,21 +1105,40 @@ function vCalendar() {
       <div><section class="calw">
         <div class="calw-top">${segToggle(calMode, 'data-cmode')}<span class="grow"></span>
           ${edit ? `<button class="btn primary sm" id="calNew">${I.plus}New event</button>` : ''}</div>
-        <div class="calw-head">
+        ${!week ? (() => { const sel = new Date(calSel + 'T00:00'); const list = agenda[calSel] || [];
+          return `<div class="calm">
+          <div class="calm-cal">
+            <div class="calm-head"><button class="round-btn" id="calPrev" aria-label="Previous month">${I.left}</button>
+              <b>${fmt(calAnchor, { month: 'long', year: 'numeric' })}</b>
+              <button class="round-btn" id="calNext" aria-label="Next month">${I.right}</button></div>
+            <div class="calm-grid">${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(l => `<span class="calm-dow">${l}</span>`).join('')}
+              ${days.map(d => { if (!d) return '<span></span>'; const k = isoDay(d); const n = (agenda[k] || []).length;
+                return `<button type="button" class="calm-day ${k === today ? 'today' : ''} ${k === calSel ? 'on' : ''} ${k < today ? 'past' : ''}" data-sel="${k}" aria-pressed="${k === calSel}" aria-label="${fmt(d, { weekday: 'long', month: 'long', day: 'numeric' })}${n ? `, ${plural(n, 'item')}` : ''}">${d.getDate()}${n ? '<i></i>' : ''}</button>`; }).join('')}</div>
+            <button class="linkish calm-today" id="calToday">Today</button>
+          </div>
+          <div class="calm-agenda">
+            <p class="calm-agenda-head">${fmt(sel, { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+            ${list.length ? list.map(x => `<button type="button" class="slot ${x.kind}${x.done ? ' done' : ''}" ${x.attr}><b>${esc(x.time || 'All day')}</b><span>${esc(x.title)}</span>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('')
+              : `<p class="calm-empty">Nothing on this day.</p>`}
+          </div>
+          <div class="calm-foot"><span>${list.length ? `<b>${fmt(sel, { weekday: 'long', month: 'long', day: 'numeric' })}</b> · ${plural(list.length, 'item')}` : `Nothing scheduled for <b>${fmt(sel, { weekday: 'long', month: 'long', day: 'numeric' })}</b>.`}</span>
+            ${edit ? `<button class="btn sm" id="calAddDay">${I.plus}Add event</button>` : ''}</div>
+        </div>`; })() : ''}
+        <div class="calw-head" ${week ? '' : 'hidden'}>
           <h2>${span || fmt(headDate, { month: 'long' })}<span>${headDate.getFullYear()}</span></h2>
           <div class="calw-nav">
-            <button class="btn sm ghost" id="calToday">Today</button>
-            <button class="round-btn" id="calPrev" aria-label="Previous ${week ? 'week' : 'month'}">${I.left}</button>
-            <button class="round-btn" id="calNext" aria-label="Next ${week ? 'week' : 'month'}">${I.right}</button>
+            ${week ? `<button class="btn sm ghost" id="calToday">Today</button>
+            <button class="round-btn" id="calPrev" aria-label="Previous week">${I.left}</button>
+            <button class="round-btn" id="calNext" aria-label="Next week">${I.right}</button>` : ''}
           </div>
         </div>
-        <div class="cal ${week ? 'is-week' : 'is-month'}">
+        <div class="cal is-week" ${week ? '' : 'hidden'}>
           ${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((l, i) => `<div class="cal-dow" title="${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][i]}">${l}</div>`).join('')}
           ${days.map(d => { if (!d) return '<div class="cal-blank"></div>'; const k = isoDay(d);
             return `<div class="cal-day ${k === today ? 'today' : ''} ${k < today ? 'past' : ''} ${edit ? 'editable' : ''}" data-day="${k}"${edit ? ` title="Add an event on ${fmt(d, { month: 'short', day: 'numeric' })}"` : ''}>
               <span class="cal-num">${d.getDate()}</span>${(items[k] || []).join('')}</div>`; }).join('')}
         </div>
-        <div class="calw-foot">
+        <div class="calw-foot" ${week ? '' : 'hidden'}>
           <div class="cal-legend"><span><i style="background:var(--navy)"></i>Meeting</span><span><i style="background:var(--brand-ink)"></i>Event</span><span><i style="background:var(--gold)"></i>Due date</span></div>
           ${edit ? '<span class="small muted">Click a day to add an event</span>' : ''}
         </div>
@@ -1121,10 +1147,16 @@ function vCalendar() {
         ${upcoming.length ? `<ul class="feed">${upcoming.map(u => `<li ${u.id ? `data-open-d="${u.id}" style="cursor:pointer"` : ''}><div class="txt"><b>${esc(u.t)}</b><p>${fmt(u.at + 'T00:00', { weekday: 'short', month: 'short', day: 'numeric' })}${u.sub && u.kind !== 'due' ? ` · ${esc(u.sub)}` : ''}</p></div></li>`).join('')}</ul>` : '<div class="empty">Nothing scheduled.</div>'}
       </div></div>
     </div>`);
-  const move = dir => { const a = new Date(calAnchor); if (week) a.setDate(a.getDate() + 7 * dir); else { a.setDate(1); a.setMonth(a.getMonth() + dir); } calAnchor = a; vCalendar(); };
+  const move = dir => { const a = new Date(calAnchor); if (week) a.setDate(a.getDate() + 7 * dir); else { a.setDate(1); a.setMonth(a.getMonth() + dir); calSel = isoDay(a); } calAnchor = a; vCalendar(); };
   $('#calPrev').onclick = () => move(-1);
   $('#calNext').onclick = () => move(1);
-  $('#calToday').onclick = () => { calAnchor = new Date(); vCalendar(); };
+  $('#calToday').onclick = () => { calAnchor = new Date(); calSel = today; vCalendar(); };
+  $$('[data-sel]').forEach(b => b.onclick = () => { calSel = b.dataset.sel; vCalendar(); });
+  $('#calAddDay')?.addEventListener('click', () => eventModal(null, calSel));
+  $('.calm-agenda')?.addEventListener('click', e => {
+    const ev = e.target.closest('[data-ev]');
+    if (ev) { const x = S.events.find(v => v.id === ev.dataset.ev); edit ? eventModal(x) : showEvent(x); }
+  });
   $('#calNew')?.addEventListener('click', () => eventModal(null, today));
   $$('[data-cmode]').forEach(b => b.onclick = () => { calMode = b.dataset.cmode; try { localStorage.setItem('bp-cal-mode', calMode); } catch {} vCalendar(); });
   $('.cal').onclick = e => {
