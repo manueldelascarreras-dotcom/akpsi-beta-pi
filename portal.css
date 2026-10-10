@@ -704,3 +704,10 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 .gb-mark.missing { color: #fff; background: var(--bad); }
 .legend .gb-grade, .legend .gb-mark { min-width: 28px; height: 22px; font-size: .74rem; }
 @media (max-width: 860px) { .preview-bar { padding: 10px 16px; } }
+
+/* Program weeks grow a little on hover (and on keyboard focus) */
+.hole-card { transition: transform .28s cubic-bezier(.2, .7, .2, 1); }
+.hole-card .ph { transition: box-shadow .28s ease, filter .2s; }
+.hole-card:hover, .hole-card:focus-visible { transform: translateY(-4px) scale(1.035); }
+.hole-card:hover .ph, .hole-card:focus-visible .ph { box-shadow: 0 18px 38px rgba(15,42,74,.22); }
+@media (hover: none) { .hole-card:hover { transform: none; } }
