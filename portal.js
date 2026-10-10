@@ -926,7 +926,7 @@ function initDatePicker(box) {
   const write = () => {
     input.value = sel ? `${sel.y}-${pad2(sel.m + 1)}-${pad2(sel.d)}${time ? `T${pad2(sel.hh)}:${pad2(sel.mi)}` : ''}` : '';
     $('.dp-text', btn).textContent = label();
-    btn.classList.toggle('empty', !sel);
+    btn.classList.toggle('is-empty', !sel);
   };
   const draw = () => {
     const today = isoDay(new Date());
