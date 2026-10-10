@@ -812,51 +812,82 @@ document.addEventListener('drop', e => {
   deliverableDrawer(row.dataset.openD, [...e.dataTransfer.files]);
 });
 
-/* ───────────── calendar ───────────── */
+/* ───────────── calendar ─────────────
+ * Weekly / Monthly widget: big month name, arrows, day letters, bold numbers.
+ */
 
-let calMonth = null;
+let calAnchor = null;   // any date inside the week or month being shown
+let calMode = (() => { try { return localStorage.getItem('bp-cal-mode') || 'week'; } catch { return 'week'; } })();
+const pad2 = n => String(n).padStart(2, '0');
+const weekStart = d => { const s = new Date(d.getFullYear(), d.getMonth(), d.getDate()); s.setDate(s.getDate() - s.getDay()); return s; };
+/* Month grid cells: nulls before the 1st and after the last day so weeks line up */
+function monthCells(first) {
+  const n = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  const cells = Array(first.getDay()).fill(null);
+  for (let k = 1; k <= n; k++) cells.push(new Date(first.getFullYear(), first.getMonth(), k));
+  while (cells.length % 7) cells.push(null);
+  return cells;
+}
+const segToggle = (mode, attr) => `<div class="seg" role="tablist">${[['week', 'Weekly'], ['month', 'Monthly']].map(([k, l]) => `<button type="button" role="tab" aria-selected="${mode === k}" class="${mode === k ? 'on' : ''}" ${attr}="${k}">${l}</button>`).join('')}</div>`;
+
 function vCalendar() {
   setTitle('Calendar');
-  if (!calMonth) { const d = new Date(); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); }
+  if (!calAnchor) calAnchor = new Date();
   const today = isoDay(new Date());
   const items = {};
-  S.events.forEach(e => (items[e.date] = items[e.date] || []).push(`<button class="cal-ev ${e.kind}" data-ev="${e.id}" title="${esc(e.title)}${e.time ? ' · ' + esc(e.time) : ''}">${esc(e.time ? e.time.replace(':00', '').replace(' ', '').toLowerCase() + ' ' : '')}${esc(e.title)}</button>`));
+  const timeShort = t => t ? t.replace(':00', '').replace(' ', '').toLowerCase() : '';
+  S.events.forEach(e => (items[e.date] = items[e.date] || []).push(`<button class="cal-ev ${e.kind}" data-ev="${e.id}" title="${esc(e.title)}${e.time ? ' · ' + esc(e.time) : ''}"><b>${esc(timeShort(e.time))}</b>${esc(e.title)}</button>`));
   S.deliverables.filter(d => d.dueAt).forEach(d => {
     const k = isoDay(new Date(d.dueAt));
     const done = role() === 'pledge' && statusOf(d, meUid()).key === 'approved';
-    (items[k] = items[k] || []).push(`<button class="cal-ev due${done ? ' done' : ''}" data-open-d="${d.id}" title="Due: ${esc(d.name)}">${esc(d.name)}</button>`);
+    (items[k] = items[k] || []).push(`<button class="cal-ev due${done ? ' done' : ''}" data-open-d="${d.id}" title="Due: ${esc(d.name)}"><b>due</b>${esc(d.name)}</button>`);
   });
-  const n = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 0).getDate();
-  const cells = Array(calMonth.getDay()).fill(null);
-  for (let k = 1; k <= n; k++) cells.push(new Date(calMonth.getFullYear(), calMonth.getMonth(), k));
-  while (cells.length % 7) cells.push(null);
   const edit = role() === 'vpm';
+  const week = calMode === 'week';
+  const ws = weekStart(calAnchor);
+  const days = week ? Array.from({ length: 7 }, (_, i) => new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + i))
+    : monthCells(new Date(calAnchor.getFullYear(), calAnchor.getMonth(), 1));
+  /* Title: the month (or both months when a week spans two) */
+  const headDate = week ? days[3] : calAnchor;
+  const span = week && days[0].getMonth() !== days[6].getMonth() ? `${fmt(days[0], { month: 'short' })} – ${fmt(days[6], { month: 'short' })}` : '';
   const upcoming = [...S.events.filter(e => e.date >= today).map(e => ({ at: e.date, t: e.title, sub: [e.time, e.location].filter(Boolean).join(' · '), kind: e.kind })),
     ...S.deliverables.filter(d => d.dueAt && d.dueAt >= new Date().toISOString()).map(d => ({ at: isoDay(new Date(d.dueAt)), t: `Due: ${d.name}`, sub: fmtDue(d.dueAt), kind: 'due', id: d.id }))]
     .sort((a, b) => a.at.localeCompare(b.at)).slice(0, 8);
+
   view(`
     <div class="cal-layout">
-      <div><div class="card">
-        <div class="cal-toolbar">
-          <button class="icon-btn" id="calPrev" aria-label="Previous month">${I.left}</button>
-          <h2 class="cal-title">${fmt(calMonth, { month: 'long' })} <span>${calMonth.getFullYear()}</span></h2>
-          <button class="icon-btn" id="calNext" aria-label="Next month">${I.right}</button>
-          <button class="btn sm" id="calToday">Today</button><span class="grow"></span>
-          ${edit ? `<span class="small muted">Click a day to add an event</span>` : ''}
+      <div><section class="calw">
+        <div class="calw-top">${segToggle(calMode, 'data-cmode')}<span class="grow"></span>
+          ${edit ? `<button class="btn primary sm" id="calNew">${I.plus}New event</button>` : ''}</div>
+        <div class="calw-head">
+          <h2>${span || fmt(headDate, { month: 'long' })}<span>${headDate.getFullYear()}</span></h2>
+          <div class="calw-nav">
+            <button class="btn sm ghost" id="calToday">Today</button>
+            <button class="round-btn" id="calPrev" aria-label="Previous ${week ? 'week' : 'month'}">${I.left}</button>
+            <button class="round-btn" id="calNext" aria-label="Next ${week ? 'week' : 'month'}">${I.right}</button>
+          </div>
         </div>
-        <div class="cal">${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<div class="cal-dow">${d}</div>`).join('')}
-          ${cells.map(d => { if (!d) return '<div class="cal-blank"></div>'; const k = isoDay(d);
-            return `<div class="cal-day ${k === today ? 'today' : ''} ${k < today ? 'past' : ''} ${edit ? 'editable' : ''}" data-day="${k}"><span class="cal-num">${d.getDate()}</span>${(items[k] || []).join('')}</div>`; }).join('')}
+        <div class="cal ${week ? 'is-week' : 'is-month'}">
+          ${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((l, i) => `<div class="cal-dow" title="${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][i]}">${l}</div>`).join('')}
+          ${days.map(d => { if (!d) return '<div class="cal-blank"></div>'; const k = isoDay(d);
+            return `<div class="cal-day ${k === today ? 'today' : ''} ${k < today ? 'past' : ''} ${edit ? 'editable' : ''}" data-day="${k}"${edit ? ` title="Add an event on ${fmt(d, { month: 'short', day: 'numeric' })}"` : ''}>
+              <span class="cal-num">${d.getDate()}</span>${(items[k] || []).join('')}</div>`; }).join('')}
         </div>
-        <div class="cal-legend"><span><i style="background:var(--navy)"></i>Meeting</span><span><i style="background:var(--brand-ink)"></i>Event</span><span><i style="background:var(--gold)"></i>Due date</span></div>
-      </div></div>
+        <div class="calw-foot">
+          <div class="cal-legend"><span><i style="background:var(--navy)"></i>Meeting</span><span><i style="background:var(--brand-ink)"></i>Event</span><span><i style="background:var(--gold)"></i>Due date</span></div>
+          ${edit ? '<span class="small muted">Click a day to add an event</span>' : ''}
+        </div>
+      </section></div>
       <div><div class="card"><div class="card-head"><h2>Coming up</h2></div>
         ${upcoming.length ? `<ul class="feed">${upcoming.map(u => `<li ${u.id ? `data-open-d="${u.id}" style="cursor:pointer"` : ''}><div class="txt"><b>${esc(u.t)}</b><p>${fmt(u.at + 'T00:00', { weekday: 'short', month: 'short', day: 'numeric' })}${u.sub && u.kind !== 'due' ? ` · ${esc(u.sub)}` : ''}</p></div></li>`).join('')}</ul>` : '<div class="empty">Nothing scheduled.</div>'}
       </div></div>
     </div>`);
-  $('#calPrev').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); vCalendar(); };
-  $('#calNext').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); vCalendar(); };
-  $('#calToday').onclick = () => { calMonth = null; vCalendar(); };
+  const move = dir => { const a = new Date(calAnchor); if (week) a.setDate(a.getDate() + 7 * dir); else { a.setDate(1); a.setMonth(a.getMonth() + dir); } calAnchor = a; vCalendar(); };
+  $('#calPrev').onclick = () => move(-1);
+  $('#calNext').onclick = () => move(1);
+  $('#calToday').onclick = () => { calAnchor = new Date(); vCalendar(); };
+  $('#calNew')?.addEventListener('click', () => eventModal(null, today));
+  $$('[data-cmode]').forEach(b => b.onclick = () => { calMode = b.dataset.cmode; try { localStorage.setItem('bp-cal-mode', calMode); } catch {} vCalendar(); });
   $('.cal').onclick = e => {
     const ev = e.target.closest('[data-ev]');
     if (ev) { const x = S.events.find(v => v.id === ev.dataset.ev); return edit ? eventModal(x) : showEvent(x); }
@@ -865,6 +896,88 @@ function vCalendar() {
     if (day && edit) eventModal(null, day.dataset.day);
   };
 }
+
+/* ───────────── date picker ─────────────
+ * Replaces the browser's date / date-time box. Same Weekly / Monthly look as the calendar.
+ * dateField(id, value, { time }) returns the markup; mountDatePickers(root) wires it up.
+ * The value lives in a hidden <input id> as YYYY-MM-DD (or YYYY-MM-DDTHH:mm with time).
+ */
+const TIME_PICKS = [['9:00 AM', 9, 0], ['12:00 PM', 12, 0], ['5:00 PM', 17, 0], ['7:00 PM', 19, 0], ['9:00 PM', 21, 0], ['11:59 PM', 23, 59]];
+
+function dateField(id, value, { time = false } = {}) {
+  return `<div class="dp" data-time="${time ? '1' : ''}">
+    <input type="hidden" id="${id}" value="${esc(value || '')}">
+    <button type="button" class="input dp-field" aria-haspopup="dialog">${I.cal}<span class="dp-text"></span></button>
+    <div class="dp-pop" role="dialog" aria-label="Choose a date" hidden></div></div>`;
+}
+function mountDatePickers(root) { $$('.dp', root).forEach(initDatePicker); }
+
+function initDatePicker(box) {
+  const input = $('input', box), btn = $('.dp-field', box), pop = $('.dp-pop', box);
+  const time = !!box.dataset.time;
+  const parse = v => { if (!v) return null; const [d, t] = v.split('T'); const [y, m, dd] = d.split('-').map(Number); const [hh, mi] = (t || '23:59').split(':').map(Number); return { y, m: m - 1, d: dd, hh, mi }; };
+  let sel = parse(input.value);
+  let anchor = sel ? new Date(sel.y, sel.m, sel.d) : new Date();
+  let mode = 'month';
+  const asDate = () => new Date(sel.y, sel.m, sel.d, sel.hh, sel.mi);
+  const label = () => !sel ? 'Pick a date' : time
+    ? `${fmt(asDate(), { weekday: 'short', month: 'short', day: 'numeric' })} · ${fmt(asDate(), { hour: 'numeric', minute: '2-digit' })}`
+    : fmt(asDate(), { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' });
+  const write = () => {
+    input.value = sel ? `${sel.y}-${pad2(sel.m + 1)}-${pad2(sel.d)}${time ? `T${pad2(sel.hh)}:${pad2(sel.mi)}` : ''}` : '';
+    $('.dp-text', btn).textContent = label();
+    btn.classList.toggle('empty', !sel);
+  };
+  const draw = () => {
+    const today = isoDay(new Date());
+    const week = mode === 'week';
+    const ws = weekStart(anchor);
+    const days = week ? Array.from({ length: 7 }, (_, i) => new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + i)) : monthCells(new Date(anchor.getFullYear(), anchor.getMonth(), 1));
+    const head = week ? days[3] : anchor;
+    const picked = sel ? `${sel.y}-${pad2(sel.m + 1)}-${pad2(sel.d)}` : '';
+    const h12 = sel ? ((sel.hh % 12) || 12) : 11, pm = sel ? sel.hh >= 12 : true, mins = sel ? sel.mi : 59;
+    pop.innerHTML = `
+      <div class="dp-top">${segToggle(mode, 'data-pmode')}</div>
+      <div class="dp-head"><h3>${fmt(head, { month: 'long' })}<span>${head.getFullYear()}</span></h3>
+        <div><button type="button" class="round-btn" data-step="-1" aria-label="Previous">${I.left}</button><button type="button" class="round-btn" data-step="1" aria-label="Next">${I.right}</button></div></div>
+      <div class="dp-grid">${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(l => `<span class="dp-dow">${l}</span>`).join('')}
+        ${days.map(d => { if (!d) return '<span></span>'; const k = isoDay(d);
+          return `<button type="button" class="dp-day ${k === today ? 'today' : ''} ${k === picked ? 'on' : ''}" data-pick="${k}" aria-pressed="${k === picked}">${d.getDate()}</button>`; }).join('')}</div>
+      ${time ? `<div class="dp-time">
+        <div class="dp-chips">${TIME_PICKS.map(([l, h, m]) => `<button type="button" class="chip-btn ${sel && sel.hh === h && sel.mi === m ? 'on' : ''}" data-t="${h}:${m}">${l}</button>`).join('')}</div>
+        <div class="dp-clock"><span>Time</span>
+          <select data-hh aria-label="Hour">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<option ${h === h12 ? 'selected' : ''}>${h}</option>`).join('')}</select>
+          <b>:</b>
+          <select data-mi aria-label="Minute">${[0, 15, 30, 45, 59].concat(mins % 15 && mins !== 59 ? [mins] : []).sort((a, b) => a - b).map(m => `<option value="${m}" ${m === mins ? 'selected' : ''}>${pad2(m)}</option>`).join('')}</select>
+          <div class="seg seg-sm">${['AM', 'PM'].map(x => `<button type="button" class="${(x === 'PM') === pm ? 'on' : ''}" data-ap="${x}">${x}</button>`).join('')}</div>
+        </div></div>` : ''}
+      <div class="dp-foot"><button type="button" class="linkish" data-today>Today</button><button type="button" class="linkish" data-clear>Clear</button><span class="grow"></span><button type="button" class="btn sm primary" data-done>Done</button></div>`;
+  };
+  const ensureSel = () => { if (!sel) { const t = new Date(); sel = { y: t.getFullYear(), m: t.getMonth(), d: t.getDate(), hh: 23, mi: 59 }; } };
+  const open = () => { draw(); pop.hidden = false; box.classList.add('open'); };
+  const close = () => { pop.hidden = true; box.classList.remove('open'); };
+  btn.onclick = () => (pop.hidden ? open() : close());
+  pop.addEventListener('click', e => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.pmode) { mode = t.dataset.pmode; return draw(); }
+    if (t.dataset.step) { const a = new Date(anchor); if (mode === 'week') a.setDate(a.getDate() + 7 * t.dataset.step); else { a.setDate(1); a.setMonth(a.getMonth() + +t.dataset.step); } anchor = a; return draw(); }
+    if (t.dataset.pick) { const [y, m, d] = t.dataset.pick.split('-').map(Number); sel = { y, m: m - 1, d, hh: sel?.hh ?? 23, mi: sel?.mi ?? 59 }; anchor = new Date(y, m - 1, d); write(); draw(); if (!time) close(); return; }
+    if (t.dataset.t) { ensureSel(); const [h, m] = t.dataset.t.split(':').map(Number); sel.hh = h; sel.mi = m; write(); return draw(); }
+    if (t.dataset.ap) { ensureSel(); const pmNow = t.dataset.ap === 'PM'; if (pmNow && sel.hh < 12) sel.hh += 12; if (!pmNow && sel.hh >= 12) sel.hh -= 12; write(); return draw(); }
+    if ('today' in t.dataset) { const n = new Date(); sel = { y: n.getFullYear(), m: n.getMonth(), d: n.getDate(), hh: sel?.hh ?? 23, mi: sel?.mi ?? 59 }; anchor = n; write(); return draw(); }
+    if ('clear' in t.dataset) { sel = null; write(); return draw(); }
+    if ('done' in t.dataset) close();
+  });
+  pop.addEventListener('change', e => {
+    ensureSel();
+    if (e.target.matches('[data-hh]')) { const h = +e.target.value % 12; sel.hh = (sel.hh >= 12 ? 12 : 0) + h; }
+    if (e.target.matches('[data-mi]')) sel.mi = +e.target.value;
+    write(); draw();
+  });
+  document.addEventListener('mousedown', e => { if (!pop.hidden && !box.contains(e.target)) close(); });
+  write();
+}
+
 function showEvent(e) {
   const m = modal(e.title, `<div class="stack"><p><b>${fmt(e.date + 'T00:00', { weekday: 'long', month: 'long', day: 'numeric' })}</b>${e.time ? ` · ${esc(e.time)}` : ''}</p>${e.location ? `<p>${esc(e.location)}</p>` : ''}${e.details ? `<p class="prose">${linkify(e.details)}</p>` : ''}</div>`, null);
   return m;
@@ -1377,7 +1490,7 @@ function vCmsProgram() {
   view(`
     <div class="card" style="margin-bottom:20px"><div class="card-head"><h2>Pledge class</h2></div><div class="card-body grid2">
       <label class="f"><span>Class name</span><input class="input" id="pClass" value="${esc(P.className)}" placeholder="Fall 2026 Pledge Class"></label>
-      <label class="f"><span>Week 1 starts</span><input class="input" type="date" id="pStart" value="${esc(P.startDate)}"><small>Each week runs 7 days from here. The portal highlights the current week.</small></label>
+      <div class="f"><span>Week 1 starts</span>${dateField('pStart', P.startDate)}<small class="f-help">Each week runs 7 days from here. The portal highlights the current week.</small></div>
     </div></div>
     <div class="card"><div class="card-head"><h2>The eight weeks</h2><span class="grow"></span><span class="small muted">Week numbers always show; the hole caption is the golf touch.</span></div>
       ${P.weeks.map((w, i) => `<div class="week-editor" data-w="${i}">
@@ -1390,6 +1503,7 @@ function vCmsProgram() {
         </div></div>`).join('')}
     </div>
     <div class="row" style="position:sticky;bottom:16px;margin-top:18px;justify-content:flex-end"><button class="btn primary lg" id="pSave">Save program</button></div>`);
+  mountDatePickers($('#view'));
   $('#view').onclick = e => {
     const b = e.target.closest('[data-photo]');
     if (!b) return;
@@ -1453,11 +1567,12 @@ function deliverableModal(id, week) {
     <div class="grid2">
       <label class="f full"><span>Name</span><input class="input" id="dName" value="${esc(d.name)}" placeholder="Professional headshot"></label>
       <label class="f"><span>Week</span>${weekSelect('dWeek', d.week)}</label>
-      <label class="f"><span>Due</span><input class="input" type="datetime-local" id="dDue" value="${toLocalInput(d.dueAt)}"></label>
+      <div class="f"><span>Due</span>${dateField('dDue', toLocalInput(d.dueAt), { time: true })}</div>
       <label class="f full"><span>Instructions</span><textarea class="textarea" id="dInstr" rows="6" placeholder="What to submit, format, and anything they should know.">${esc(d.instructions)}</textarea></label>
       <div class="full"><span class="f-label">Templates & resources</span><div class="links" id="dRes"></div>
         <div class="row" style="margin-top:8px"><label class="btn sm">${I.upload}Upload file<input type="file" id="dUp" hidden></label><button class="btn sm" id="dAddLink" type="button">${I.link}Add link</button></div></div>
     </div>`, id ? 'Save' : 'Add deliverable');
+  mountDatePickers(m.el);
   const drawRes = () => {
     $('#dRes', m.el).innerHTML = res.map((r, i) => `<div class="link-row">${r.path ? I.file : I.link}<span>${esc(r.name)}</span><button class="icon-btn" data-rm="${i}" type="button" aria-label="Remove">${I.x}</button></div>`).join('') || '<p class="small muted">None yet.</p>';
   };
@@ -1539,12 +1654,13 @@ function eventModal(e, date) {
   const x = e ? { ...e } : { title: '', date: date || isoDay(new Date()), time: '', location: '', kind: 'meeting', details: '', week: 0 };
   const m = modal(e ? 'Edit event' : 'Add event', `<div class="grid2">
     <label class="f full"><span>Title</span><input class="input" id="eTitle" value="${esc(x.title)}" placeholder="Pledge meeting"></label>
-    <label class="f"><span>Date</span><input class="input" type="date" id="eDate" value="${esc(x.date)}"></label>
+    <div class="f"><span>Date</span>${dateField('eDate', x.date)}</div>
     <label class="f"><span>Time</span><input class="input" id="eTime" value="${esc(x.time)}" placeholder="7:00 PM"></label>
     <label class="f"><span>Kind</span><select class="select" id="eKind">${[['meeting', 'Meeting'], ['event', 'Event'], ['deadline', 'Deadline']].map(([k, l]) => `<option value="${k}" ${k === x.kind ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
     <label class="f"><span>Location</span><input class="input" id="eLoc" value="${esc(x.location)}"></label>
     <label class="f full"><span>Details</span><textarea class="textarea" id="eDetails" rows="3">${esc(x.details)}</textarea></label>
     </div>${e ? `<button class="btn sm danger" id="eDel" style="margin-top:14px">${I.trash}Delete event</button>` : ''}`, e ? 'Save' : 'Add event');
+  mountDatePickers(m.el);
   $('#eDel', m.el)?.addEventListener('click', async () => { m.close(); try { if (await deleteItem('portalEvents', e.id, `“${e.title}”`)) { toast('Event deleted.'); route(); } } catch (y) { toast(y.message, true); } });
   m.onOk = async () => {
     const dateV = $('#eDate', m.el).value;

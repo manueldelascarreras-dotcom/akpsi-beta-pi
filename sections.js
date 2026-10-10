@@ -133,7 +133,7 @@ function setupVideo(v) {
   });
 }
 
-/* Events: one week at a time (Sunday to Saturday) */
+/* Events calendar: Weekly / Monthly widget (Sunday to Saturday) */
 if (has('weekList')) getJSON('events').then(events => {
   const DAY = 864e5;
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -143,47 +143,83 @@ if (has('weekList')) getJSON('events').then(events => {
   events.forEach(e => { e._d = new Date(e.date + 'T00:00:00'); });
   events.sort((a, b) => a._d - b._d);
   let week = thisWeek;
+  let month = new Date(today.getFullYear(), today.getMonth(), 1);
+  let mode = 'week';
+
+  const eventRow = e => `
+    <div class="week-event${e._d < today ? ' past' : ''}">
+      <div class="when">${fmt(e._d, { weekday: 'short' })} ${e._d.getDate()}</div>
+      <div>
+        <div class="title">${esc(e.title)}</div>
+        <div class="meta">${[e.time, e.location].filter(Boolean).map(esc).join(' · ')}</div>
+      </div>
+    </div>`;
+  const dayCell = (d, list) => {
+    const cls = [d.getTime() === today.getTime() && 'today', d < today && 'past', list.some(e => e._d.getTime() === d.getTime()) && 'has'].filter(Boolean).join(' ');
+    return `<button type="button" class="day ${cls}" data-day="${d.getTime()}" aria-label="${fmt(d, { weekday: 'long', month: 'long', day: 'numeric' })}"><div class="dow">${fmt(d, { weekday: 'narrow' })}</div><div class="num">${d.getDate()}</div><span class="dot"></span></button>`;
+  };
 
   const render = () => {
-    const end = new Date(week.getTime() + 6 * DAY);
-    const diff = Math.round((week - thisWeek) / (7 * DAY));
-    $('weekLabel').textContent = diff === 0 ? 'This' : diff === 1 ? 'Next' : diff === -1 ? 'Last' : 'That';
-    $('weekRange').textContent = week.getMonth() === end.getMonth()
-      ? `${fmt(week, { month: 'short', day: 'numeric' })} – ${end.getDate()}`
-      : `${fmt(week, { month: 'short', day: 'numeric' })} – ${fmt(end, { month: 'short', day: 'numeric' })}`;
-    $('weekToday').hidden = diff === 0;
-
-    const inWeek = events.filter(e => e._d >= week && e._d <= end);
-    $('weekStrip').innerHTML = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(week.getTime() + i * DAY);
-      const cls = [d.getTime() === today.getTime() && 'today', d < today && 'past', inWeek.some(e => e._d.getTime() === d.getTime()) && 'has'].filter(Boolean).join(' ');
-      return `<div class="day ${cls}"><div class="dow">${fmt(d, { weekday: 'short' })}</div><div class="num">${d.getDate()}</div><span class="dot"></span></div>`;
-    }).join('');
-
-    if (inWeek.length) {
-      $('weekList').innerHTML = inWeek.map(e => `
-        <div class="week-event${e._d < today ? ' past' : ''}">
-          <div class="when">${fmt(e._d, { weekday: 'short' })} ${e._d.getDate()}</div>
-          <div>
-            <div class="title">${esc(e.title)}</div>
-            <div class="meta">${[e.time, e.location].filter(Boolean).map(esc).join(' · ')}</div>
-          </div>
-        </div>`).join('');
+    document.querySelectorAll('#calSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+    $('weekStrip').classList.toggle('is-month', mode === 'month');
+    const unit = document.querySelector('#events-heading em'); if (unit) unit.textContent = mode === 'month' ? 'month' : 'week';
+    if (mode === 'week') {
+      const end = new Date(week.getTime() + 6 * DAY);
+      const diff = Math.round((week - thisWeek) / (7 * DAY));
+      $('weekLabel').textContent = diff === 0 ? 'This' : diff === 1 ? 'Next' : diff === -1 ? 'Last' : 'That';
+      $('weekRange').textContent = week.getMonth() === end.getMonth()
+        ? `${fmt(week, { month: 'short', day: 'numeric' })} – ${end.getDate()}`
+        : `${fmt(week, { month: 'short', day: 'numeric' })} – ${fmt(end, { month: 'short', day: 'numeric' })}`;
+      $('weekToday').hidden = diff === 0;
+      const mid = new Date(week.getTime() + 3 * DAY);
+      $('calMonthName').innerHTML = `${fmt(mid, { month: 'long' })} <span>${mid.getFullYear()}</span>`;
+      const inWeek = events.filter(e => e._d >= week && e._d <= end);
+      $('weekStrip').innerHTML = Array.from({ length: 7 }, (_, i) => dayCell(new Date(week.getTime() + i * DAY), inWeek)).join('');
+      if (inWeek.length) $('weekList').innerHTML = inWeek.map(eventRow).join('');
+      else {
+        const next = events.find(e => e._d > end);
+        $('weekList').innerHTML = `<div class="week-empty">No events this week.${next
+          ? `<button type="button" data-jump="${next.date}">Next up: ${esc(next.title)}, ${fmt(next._d, { month: 'short', day: 'numeric' })} →</button>`
+          : ''}</div>`;
+      }
     } else {
-      const next = events.find(e => e._d > end);
-      $('weekList').innerHTML = `<div class="week-empty">No events this week.${next
-        ? `<button type="button" data-jump="${next.date}">Next up: ${esc(next.title)}, ${fmt(next._d, { month: 'short', day: 'numeric' })} →</button>`
-        : ''}</div>`;
+      const last = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+      const isNow = month.getMonth() === today.getMonth() && month.getFullYear() === today.getFullYear();
+      $('weekLabel').textContent = isNow ? 'This' : 'That';
+      $('weekRange').textContent = fmt(month, { month: 'long', year: 'numeric' });
+      $('weekToday').hidden = isNow;
+      $('calMonthName').innerHTML = `${fmt(month, { month: 'long' })} <span>${month.getFullYear()}</span>`;
+      const inMonth = events.filter(e => e._d >= month && e._d <= last);
+      const cells = ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(l => `<span class="day head"><span class="dow">${l}</span></span>`).concat(Array(month.getDay()).fill('<span class="day blank"></span>'));
+      for (let k = 1; k <= last.getDate(); k++) cells.push(dayCell(new Date(month.getFullYear(), month.getMonth(), k), inMonth));
+      while (cells.length % 7) cells.push('<span class="day blank"></span>');
+      $('weekStrip').innerHTML = cells.join('');
+      $('weekList').innerHTML = inMonth.length ? inMonth.map(eventRow).join('') : '<div class="week-empty">No events this month.</div>';
     }
   };
 
-  const go = w => { week = w; render(); };
-  $('weekPrev').addEventListener('click', () => go(new Date(week.getTime() - 7 * DAY)));
-  $('weekNext').addEventListener('click', () => go(new Date(week.getTime() + 7 * DAY)));
-  $('weekToday').addEventListener('click', () => go(thisWeek));
+  const step = dir => {
+    if (mode === 'week') week = new Date(week.getTime() + dir * 7 * DAY);
+    else month = new Date(month.getFullYear(), month.getMonth() + dir, 1);
+    render();
+  };
+  $('weekPrev').addEventListener('click', () => step(-1));
+  $('weekNext').addEventListener('click', () => step(1));
+  $('weekToday').addEventListener('click', () => { week = thisWeek; month = new Date(today.getFullYear(), today.getMonth(), 1); render(); });
+  $('calSeg').addEventListener('click', e => {
+    const b = e.target.closest('[data-mode]'); if (!b) return;
+    mode = b.dataset.mode;
+    if (mode === 'month') month = new Date(week.getTime() + 3 * DAY), month = new Date(month.getFullYear(), month.getMonth(), 1);
+    render();
+  });
+  /* In the month view, a day opens its week */
+  $('weekStrip').addEventListener('click', e => {
+    const d = e.target.closest('[data-day]');
+    if (d && mode === 'month') { week = startOfWeek(new Date(+d.dataset.day)); mode = 'week'; render(); }
+  });
   $('weekList').addEventListener('click', e => {
     const b = e.target.closest('[data-jump]');
-    if (b) go(startOfWeek(new Date(b.dataset.jump + 'T00:00:00')));
+    if (b) { week = startOfWeek(new Date(b.dataset.jump + 'T00:00:00')); render(); }
   });
   render();
 });

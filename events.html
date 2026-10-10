@@ -68,8 +68,11 @@
           <button type="button" class="week-today" id="weekToday" hidden>Today</button>
         </div>
       </div>
-      <div class="week-strip reveal" id="weekStrip" aria-hidden="true"></div>
-      <div class="week-list" id="weekList"></div>
+      <div class="cal-card reveal">
+        <div class="cal-card-head"><h3 id="calMonthName"></h3><div class="cal-seg" id="calSeg" role="group" aria-label="Calendar view"><button type="button" data-mode="week" class="on">Weekly</button><button type="button" data-mode="month">Monthly</button></div></div>
+        <div class="week-strip" id="weekStrip"></div>
+        <div class="week-list" id="weekList"></div>
+      </div>
     </div>
   </section>
 
