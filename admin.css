@@ -333,3 +333,15 @@ tbody tr:last-child td { border-bottom: none; }
   .cal-ev { font-size: .68rem; padding: 3px 5px; }
   .cal-title { min-width: 0; font-size: 1.3rem; }
 }
+
+/* ─── Pledge program pages ─── */
+.side nav .nav-group { padding: 16px 12px 6px; font-size: .64rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.42); }
+.side nav .nav-group:first-child { padding-top: 4px; }
+.portal-note { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.portal-note a { margin-left: auto; font-weight: 700; white-space: nowrap; }
+.pill.bad { background: #FBE9E7; color: #B42318; }
+.pill.warn { background: var(--amber-soft); color: var(--amber); }
+td.files { min-width: 150px; }
+td.files a { display: inline-flex; align-items: center; gap: 5px; margin: 2px 8px 2px 0; font-size: .8rem; font-weight: 600; white-space: nowrap; }
+td.files svg { width: 14px; height: 14px; flex: none; }
+.small { font-size: .78rem; }

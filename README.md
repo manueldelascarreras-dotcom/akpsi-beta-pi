@@ -50,12 +50,19 @@ Try it locally with sample data: run `firebase emulators:start`, then `node scri
 
 | Section | What you can do |
 |---|---|
-| Applications | See every applicant per semester: how many applied, on time vs. late, applications per day, and status counts. Click anyone to see their headshot, resume, and answers, set a status (New, Reviewing, Interview, Bid extended, Not moving forward), and keep private notes. Export a semester to Excel. |
+| **Pledge program** | |
+| Submissions | Every deliverable pledges turned in: who, which assignment, the due time, the exact time it was turned in (and the first time, if resubmitted), on time or how late, status, grade, who reviewed it, and the files. Filter by week, status (waiting, needs revision, approved, late, missing) or name. Export to Excel. |
+| Assignments | Each deliverable with its week, due time, and how many turned it in, are waiting, late, missing, or approved, plus the average grade. Click one to see its submissions. |
+| Pledges | Every pledge with their educator, approved count, average grade, late and missing counts, and last turn-in. Export to Excel. |
+| **Chapter website** | |
+| Rush applications | See every applicant per semester: how many applied, on time vs. late, applications per day, and status counts. Click anyone to see their headshot, resume, and answers, set a status (New, Reviewing, Interview, Bid extended, Not moving forward), and keep private notes. Export a semester to Excel. |
 | Members | Import an Excel sheet to update every member and their LinkedIn at once (download the template to see the columns). You can also add, edit, reorder, or remove people one at a time and upload headshots. |
 | Events | Month calendar: click a day to add an event, click an event to edit it. A List view and Excel import are also available. |
 | Gallery | Upload photos with a title and description. They show in "Life at Beta Pi" on the About page. |
 | Rush Settings | Semester, deadline, open/closed, and the rush timeline. Changing the semester starts a fresh list; older semesters stay in Applications. |
 | Site Content | Social links, About video, core value photos, stats, spotlight, philanthropy text, network logos, and an advanced editor for everything else. |
+
+The Pledge program pages read the pledge portal data (Firestore `portal`, `users`, `deliverables`, `submissions`) through `/api/admin/portal`, and open files through `/api/admin/portal-file`. They are read-only: reviewing, grading, and posting assignments happen in the pledge portal. They need Firebase (live or the local emulators), not `server.js`.
 
 ### Profile update link
 

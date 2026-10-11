@@ -116,7 +116,7 @@ function showAuth(setup) {
   setupMode = setup;
   $('#app').hidden = true; $('#auth').hidden = false;
   $('#authTitle').textContent = 'Alpha Kappa Psi';
-  $('#authText').textContent = setup ? 'Beta Pi CMS. Create the admin password and share it only with the e-board.' : 'Beta Pi CMS. Log in to manage the site.';
+  $('#authText').textContent = setup ? 'Beta Pi CMS. Create the admin password and share it only with the e-board.' : 'Beta Pi CMS. Log in to see pledge submissions and manage the chapter site.';
   $('#authPass2').hidden = !setup; $('#authPass2').required = setup;
   $('#authPass').autocomplete = setup ? 'new-password' : 'current-password';
   $('#authBtn').textContent = setup ? 'Create password' : 'Log in';
@@ -151,10 +151,192 @@ $('#changePass').addEventListener('click', () => {
   };
 });
 
+/* ───────────── Pledge program (read from the pledge portal) ─────────────
+ * Submissions: every deliverable received, with times and lateness.
+ * Assignments: each deliverable's due date and turn-in counts.
+ * Pledges: the roster with progress, grades, late and missing work.
+ * Reviewing, grading, and posting assignments happen in the portal itself.
+ */
+const PORTAL = './';
+async function loadPortal(force) {
+  if (state.portal && !force) return state.portal;
+  state.portal = await api('GET', '/api/admin/portal');
+  return state.portal;
+}
+const pp = {
+  pledges: () => state.portal.people.filter(p => p.role === 'pledge' && p.active).sort((a, b) => a.name.localeCompare(b.name)),
+  person: uid => state.portal.people.find(p => p.uid === uid),
+  deliv: id => state.portal.deliverables.find(d => d.id === id),
+  sub: (dId, uid) => state.portal.submissions.find(s => s.deliverableId === dId && s.pledgeUid === uid),
+};
+/* Same rules as the portal: Approved, Needs revision, Submitted (Late if after the due date); none + past due = Missing */
+function pStatus(d, uid) {
+  const s = pp.sub(d.id, uid);
+  if (s?.status === 'approved') return { key: 'approved', label: 'Approved', tone: 'ok', s };
+  if (s?.status === 'needs_revision') return { key: 'revision', label: 'Needs revision', tone: 'warn', s };
+  if (s) return { key: 'submitted', label: s.late ? 'Submitted late' : 'Waiting for review', tone: s.late ? 'bad' : 'info', s };
+  if (d.dueAt && Date.now() > Date.parse(d.dueAt)) return { key: 'missing', label: 'Missing', tone: 'bad' };
+  return { key: 'open', label: 'Not due yet', tone: '' };
+}
+const fmtTime = iso => iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+function lateBy(dueIso, atIso) {
+  const ms = Date.parse(atIso) - Date.parse(dueIso);
+  if (!(ms > 0)) return '';
+  const h = Math.round(ms / 36e5);
+  return h < 24 ? `${Math.max(1, h)}h late` : `${Math.floor(h / 24)}d ${h % 24}h late`;
+}
+const portalFile = (path, dl) => `/api/admin/portal-file?path=${encodeURIComponent(path)}${dl ? '&download=1' : ''}`;
+const portalNote = text => `<div class="note portal-note">${text} <a href="${PORTAL}#/review" target="_blank" rel="noopener">Open the pledge portal ↗</a></div>`;
+
+function portalLoading(title) {
+  $('#view').innerHTML = `<div class="page-head"><div><h1>${title}</h1><p>Loading the pledge program…</p></div></div>`;
+}
+async function withPortal(title, draw) {
+  if (!state.portal) {
+    portalLoading(title);
+    try { await loadPortal(); } catch (e) { $('#view').innerHTML = `<div class="page-head"><div><h1>${title}</h1><p>${esc(e.message)}</p></div></div>`; return; }
+  }
+  draw();
+}
+
+/* ── Submissions ── */
+state.subFilter = { q: '', week: '', status: 'all', deliv: '' };
+function renderSubmissions() {
+  withPortal('Submissions', () => {
+    const F = state.subFilter;
+    const P = state.portal;
+    const ps = pp.pledges();
+    /* One row per turned-in deliverable, plus one per missing one */
+    const rows = [];
+    P.submissions.forEach(s => { const d = pp.deliv(s.deliverableId), p = pp.person(s.pledgeUid); if (d && p) rows.push({ d, p, st: pStatus(d, p.uid), s }); });
+    ps.forEach(p => P.deliverables.forEach(d => { const st = pStatus(d, p.uid); if (st.key === 'missing') rows.push({ d, p, st }); }));
+    const count = k => rows.filter(r => k === 'all' ? r.s : k === 'late' ? r.s?.late : r.st.key === k).length;
+    const shown = rows.filter(r => (F.status === 'all' ? r.s : F.status === 'late' ? r.s?.late : r.st.key === F.status)
+      && (!F.week || String(r.d.week) === F.week) && (!F.deliv || r.d.id === F.deliv)
+      && (!F.q || `${r.p.name} ${r.d.name}`.toLowerCase().includes(F.q.toLowerCase())))
+      .sort((a, b) => String(b.s?.submittedAt || b.d.dueAt).localeCompare(String(a.s?.submittedAt || a.d.dueAt)));
+    const tabs = [['all', 'All received'], ['submitted', 'Waiting for review'], ['revision', 'Needs revision'], ['approved', 'Approved'], ['late', 'Turned in late'], ['missing', 'Missing']];
+    $('#view').innerHTML = `
+      <div class="page-head"><div><h1>Submissions</h1><p>Every deliverable pledges have turned in, with the exact time and whether it was late.</p></div>
+        <div class="actions"><button class="btn" id="subRefresh">Refresh</button><button class="btn" id="subExport">${I.dl}Export to Excel</button></div></div>
+      ${portalNote('To review, grade, or comment on a submission, use the pledge portal.')}
+      <div class="stats">
+        <div class="panel stat"><div class="k">Received</div><div class="v">${count('all')}</div><div class="s">from ${ps.length} pledges</div></div>
+        <div class="panel stat"><div class="k">Waiting for review</div><div class="v">${count('submitted')}</div><div class="s">educators haven't graded yet</div></div>
+        <div class="panel stat"><div class="k">Turned in late</div><div class="v">${count('late')}</div><div class="s">after the due time</div></div>
+        <div class="panel stat"><div class="k">Missing</div><div class="v">${count('missing')}</div><div class="s">past due, not turned in</div></div>
+      </div>
+      <div class="panel">
+        <div class="toolbar">
+          <div class="search">${I.search}<input class="input" id="subQ" placeholder="Search pledge or assignment" value="${esc(F.q)}"></div>
+          <select class="select" id="subWeek" style="width:auto"><option value="">All weeks</option>${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<option value="${n}" ${F.week === String(n) ? 'selected' : ''}>Week ${n}${P.program.weeks[n - 1]?.title ? ` · ${esc(P.program.weeks[n - 1].title)}` : ''}</option>`).join('')}</select>
+          ${F.deliv ? `<button class="chip on" id="subClearDeliv">${esc(pp.deliv(F.deliv)?.name || '')} ✕</button>` : ''}
+          <span class="grow"></span><span class="muted small">${shown.length} shown</span>
+        </div>
+        <div class="toolbar"><div class="tabs">${tabs.map(([k, l]) => `<button class="${F.status === k ? 'on' : ''}" data-substatus="${k}">${l}<span>${count(k)}</span></button>`).join('')}</div></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Pledge</th><th>Assignment</th><th>Due</th><th>Turned in</th><th>Timing</th><th>Status</th><th>Grade</th><th>Reviewed by</th><th>Files</th></tr></thead>
+          <tbody>${shown.length ? shown.map(({ d, p, st, s }) => `<tr>
+            <td class="nowrap"><b>${esc(p.name)}</b><div class="muted small">${esc(pp.person(p.educatorUid)?.name || 'No educator')}</div></td>
+            <td>${esc(d.name)}<div class="muted small">Week ${d.week}</div></td>
+            <td class="nowrap">${fmtTime(d.dueAt)}</td>
+            <td class="nowrap">${s ? fmtTime(s.submittedAt) : '<span class="muted">Not turned in</span>'}${s && s.firstSubmittedAt && s.firstSubmittedAt !== s.submittedAt ? `<div class="muted small">first ${fmtTime(s.firstSubmittedAt)}</div>` : ''}</td>
+            <td class="nowrap">${s ? (s.late ? `<span class="pill bad">${lateBy(d.dueAt, s.submittedAt) || 'Late'}</span>` : '<span class="pill ok">On time</span>') : `<span class="pill bad">${lateBy(d.dueAt, new Date().toISOString()).replace('late', 'overdue')}</span>`}</td>
+            <td><span class="pill ${st.tone}">${st.label}</span></td>
+            <td>${s?.grade != null ? `<b>${s.grade}</b><span class="muted">/100</span>` : '<span class="muted">—</span>'}</td>
+            <td class="small">${esc(s?.reviewedByName || '') || '<span class="muted">—</span>'}</td>
+            <td class="files">${s ? [...(s.files || []).map((f, i) => `<a href="${portalFile(f.path)}" target="_blank" rel="noopener" title="${esc(f.name)}">${I.file}${(s.files || []).length > 1 ? `File ${i + 1}` : 'View file'}</a>`), s.link ? `<a href="${esc(s.link)}" target="_blank" rel="noopener">${I.ext}Link</a>` : ''].join('') || '<span class="muted small">Note only</span>' : ''}</td>
+          </tr>`).join('') : `<tr><td colspan="9"><div class="empty-state"><b>Nothing here</b>${P.deliverables.length ? 'Try another filter.' : 'Post assignments in the pledge portal (Classwork → Create) and submissions will show up here.'}</div></td></tr>`}</tbody>
+        </table></div>
+      </div>`;
+    $('#subQ').oninput = e => { F.q = e.target.value; const pos = e.target.selectionStart; renderSubmissions(); const i = $('#subQ'); i.focus(); i.setSelectionRange(pos, pos); };
+    $('#subWeek').onchange = e => { F.week = e.target.value; renderSubmissions(); };
+    $('#subClearDeliv')?.addEventListener('click', () => { F.deliv = ''; renderSubmissions(); });
+    $$('[data-substatus]').forEach(b => b.onclick = () => { F.status = b.dataset.substatus; renderSubmissions(); });
+    $('#subRefresh').onclick = async () => { try { await loadPortal(true); renderSubmissions(); toast('Up to date.'); } catch (e) { toast(e.message, true); } };
+    $('#subExport').onclick = () => downloadSheet(`Beta Pi submissions ${new Date().toISOString().slice(0, 10)}.xlsx`,
+      ['Pledge', 'Pledge educator', 'Week', 'Assignment', 'Due', 'Turned in', 'Timing', 'Status', 'Grade', 'Reviewed by', 'Files'],
+      shown.map(({ d, p, st, s }) => [p.name, pp.person(p.educatorUid)?.name || '', d.week, d.name, fmtTime(d.dueAt), s ? fmtTime(s.submittedAt) : 'Not turned in',
+        s ? (s.late ? lateBy(d.dueAt, s.submittedAt) || 'Late' : 'On time') : 'Missing', st.label, s?.grade ?? '', s?.reviewedByName || '', (s?.files || []).map(f => f.name).join(', ')]),
+      [22, 20, 7, 30, 22, 22, 14, 18, 8, 18, 30]);
+  });
+}
+
+/* ── Assignments ── */
+function renderAssignments() {
+  withPortal('Assignments', () => {
+    const P = state.portal, ps = pp.pledges();
+    const rows = P.deliverables.map(d => {
+      const st = ps.map(p => pStatus(d, p.uid));
+      const grades = st.map(x => x.s?.grade).filter(g => g != null);
+      return { d, turned: st.filter(x => x.s).length, late: st.filter(x => x.s?.late).length, missing: st.filter(x => x.key === 'missing').length,
+        approved: st.filter(x => x.key === 'approved').length, waiting: st.filter(x => x.key === 'submitted').length,
+        avg: grades.length ? Math.round(grades.reduce((a, b) => a + b, 0) / grades.length * 10) / 10 : null };
+    });
+    $('#view').innerHTML = `
+      <div class="page-head"><div><h1>Assignments</h1><p>Every deliverable in the 8-week program, its due time, and who has turned it in.</p></div>
+        <div class="actions"><a class="btn primary" href="${PORTAL}#/classwork" target="_blank" rel="noopener">${I.plus}Add or edit in the portal ↗</a></div></div>
+      ${portalNote('Assignments and materials are created in the portal under Classwork → Create.')}
+      <div class="panel"><div class="table-wrap"><table>
+        <thead><tr><th>Week</th><th>Assignment</th><th>Due</th><th>Turned in</th><th>Waiting</th><th>Late</th><th>Missing</th><th>Approved</th><th>Avg grade</th></tr></thead>
+        <tbody>${rows.length ? rows.map(r => `<tr class="click" data-deliv="${r.d.id}" title="See these submissions">
+          <td class="nowrap"><b>Week ${r.d.week}</b><div class="muted small">${esc(P.program.weeks[r.d.week - 1]?.title || '')}</div></td>
+          <td><b>${esc(r.d.name)}</b></td><td class="nowrap">${fmtTime(r.d.dueAt)}</td>
+          <td><b>${r.turned}</b><span class="muted">/${ps.length}</span></td><td>${r.waiting || '<span class="muted">0</span>'}</td>
+          <td>${r.late ? `<span class="pill bad">${r.late}</span>` : '<span class="muted">0</span>'}</td>
+          <td>${r.missing ? `<span class="pill bad">${r.missing}</span>` : '<span class="muted">0</span>'}</td>
+          <td>${r.approved ? `<span class="pill ok">${r.approved}</span>` : '<span class="muted">0</span>'}</td>
+          <td>${r.avg ?? '<span class="muted">—</span>'}</td></tr>`).join('') : `<tr><td colspan="9"><div class="empty-state"><b>No assignments yet</b>Create them in the pledge portal under Classwork.</div></td></tr>`}</tbody>
+      </table></div></div>`;
+    $$('[data-deliv]').forEach(r => r.onclick = () => { Object.assign(state.subFilter, { deliv: r.dataset.deliv, status: 'all', week: '', q: '' }); state.view = 'submissions'; location.hash = 'submissions'; renderNav(); render(); });
+  });
+}
+
+/* ── Pledges ── */
+function renderPledgeRoster() {
+  withPortal('Pledges', () => {
+    const P = state.portal, ps = pp.pledges();
+    const rows = ps.map(p => {
+      const st = P.deliverables.map(d => pStatus(d, p.uid));
+      const grades = st.map(x => x.s?.grade).filter(g => g != null);
+      const last = st.map(x => x.s?.submittedAt).filter(Boolean).sort().pop();
+      return { p, approved: st.filter(x => x.key === 'approved').length, late: st.filter(x => x.s?.late).length, missing: st.filter(x => x.key === 'missing').length,
+        avg: grades.length ? Math.round(grades.reduce((a, b) => a + b, 0) / grades.length * 10) / 10 : null, last };
+    });
+    const educators = P.people.filter(p => ['educator', 'vpm'].includes(p.role) && p.active);
+    $('#view').innerHTML = `
+      <div class="page-head"><div><h1>Pledges</h1><p>${ps.length} ${ps.length === 1 ? 'pledge' : 'pledges'} and ${(n => `${n} pledge ${n === 1 ? 'educator' : 'educators'}`)(educators.filter(e => e.role === 'educator').length)} in ${esc(P.program.className)}.</p></div>
+        <div class="actions"><a class="btn" href="${PORTAL}#/people" target="_blank" rel="noopener">${I.users}Invite or manage in the portal ↗</a>
+          <button class="btn" id="rosterExport">${I.dl}Export to Excel</button></div></div>
+      ${portalNote('Invite codes, roles, and educator assignments live in the portal under People & access.')}
+      <div class="panel"><div class="table-wrap"><table>
+        <thead><tr><th>Pledge</th><th>Pledge educator</th><th>Approved</th><th>Avg grade</th><th>Late</th><th>Missing</th><th>Last turned in</th></tr></thead>
+        <tbody>${rows.length ? rows.map(r => `<tr>
+          <td><b>${esc(r.p.name)}</b><div class="muted small">${esc(r.p.email || '')}</div></td>
+          <td>${esc(pp.person(r.p.educatorUid)?.name || '') || '<span class="muted">Not assigned</span>'}</td>
+          <td><b>${r.approved}</b><span class="muted">/${P.deliverables.length}</span></td>
+          <td>${r.avg ?? '<span class="muted">—</span>'}</td>
+          <td>${r.late ? `<span class="pill bad">${r.late}</span>` : '<span class="muted">0</span>'}</td>
+          <td>${r.missing ? `<span class="pill bad">${r.missing}</span>` : '<span class="muted">0</span>'}</td>
+          <td class="nowrap">${r.last ? fmtTime(r.last) : '<span class="muted">Nothing yet</span>'}</td></tr>`).join('')
+          : `<tr><td colspan="7"><div class="empty-state"><b>No pledges yet</b>Create invite codes in the portal under People & access.</div></td></tr>`}</tbody>
+      </table></div></div>`;
+    $('#rosterExport').onclick = () => downloadSheet(`Beta Pi pledges ${new Date().toISOString().slice(0, 10)}.xlsx`,
+      ['Pledge', 'Email', 'Pledge educator', 'Approved', 'Average grade', 'Late', 'Missing', 'Last turned in'],
+      rows.map(r => [r.p.name, r.p.email || '', pp.person(r.p.educatorUid)?.name || '', `${r.approved}/${P.deliverables.length}`, r.avg ?? '', r.late, r.missing, r.last ? fmtTime(r.last) : '']),
+      [22, 28, 20, 10, 12, 8, 8, 22]);
+  });
+}
+
 /* ───────────── shell ───────────── */
 
 const VIEWS = [
-  { id: 'applications', label: 'Applications', icon: I.inbox, render: renderApplications },
+  { group: 'Pledge program' },
+  { id: 'submissions', label: 'Submissions', icon: I.inbox, render: renderSubmissions },
+  { id: 'assignments', label: 'Assignments', icon: I.file, render: renderAssignments },
+  { id: 'pledges', label: 'Pledges', icon: I.users, render: renderPledgeRoster },
+  { group: 'Chapter website' },
+  { id: 'applications', label: 'Rush applications', icon: I.inbox, render: renderApplications },
   { id: 'rush', label: 'Rush Settings', icon: I.flag, render: renderRush },
   { id: 'members', label: 'Members', icon: I.users, render: renderMembers },
   { id: 'events', label: 'Events', icon: I.cal, render: renderEvents },
@@ -170,7 +352,7 @@ async function boot() {
     Object.assign(state, { site, members, events, gallery, apps });
     DATA_SOURCES.forEach(snapshot);
     state.term = site.apply?.term || terms()[0] || '';
-    state.view = VIEWS.some(v => v.id === location.hash.slice(1)) ? location.hash.slice(1) : 'applications';
+    state.view = VIEWS.some(v => v.id && v.id === location.hash.slice(1)) ? location.hash.slice(1) : 'submissions';
     $('#auth').hidden = true; $('#app').hidden = false;
     renderNav(); render();
   } catch (e) { toast(e.message, true); }
@@ -178,7 +360,7 @@ async function boot() {
 
 function renderNav() {
   const cur = state.apps.filter(a => a.term === state.site.apply?.term && a.status === 'New').length;
-  $('#sideNav').innerHTML = VIEWS.map(v => `
+  $('#sideNav').innerHTML = VIEWS.map(v => v.group ? `<div class="nav-group">${v.group}</div>` : `
     <button type="button" data-view="${v.id}" class="${v.id === state.view ? 'active' : ''}">
       ${v.icon}${v.label}${v.id === 'applications' && cur ? `<span class="badge" title="New this semester">${cur}</span>` : ''}
     </button>`).join('');

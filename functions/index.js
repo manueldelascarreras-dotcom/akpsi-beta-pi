@@ -445,6 +445,32 @@ async function handleAdmin(req, res, route) {
     return send(res, 200, { ok: true });
   }
 
+  /* Pledge program, read-only for the CMS: every deliverable, submission, and person */
+  if (route === 'portal' && req.method === 'GET') {
+    const all = async name => (await db.collection(name).get()).docs.map(d => ({ id: d.id, ...d.data() }));
+    const [programSnap, users, deliverables, submissions] = await Promise.all([
+      db.collection('portal').doc('program').get(), all('users'), all('deliverables'), all('submissions'),
+    ]);
+    const p = programSnap.exists ? programSnap.data() : {};
+    return send(res, 200, {
+      program: { className: p.className || 'Pledge Class', startDate: p.startDate || '', weeks: (p.weeks || []).map(w => ({ title: w.title || '' })) },
+      people: users.map(u => ({ uid: u.uid || u.id, name: u.name, email: u.email, role: u.role, educatorUid: u.educatorUid || '', active: u.active !== false, createdAt: u.createdAt })),
+      deliverables: deliverables.sort((a, b) => a.week - b.week || String(a.dueAt).localeCompare(String(b.dueAt))),
+      submissions,
+    });
+  }
+  /* Open a pledge's submitted file (or a program resource) from the CMS */
+  if (route === 'portal-file' && req.method === 'GET') {
+    const p = String(req.query.path || '');
+    if (!/^private\/portal\/(submissions|resources)\//.test(p) || p.includes('..')) return send(res, 403, 'Forbidden');
+    try {
+      const f = bucket.file(p);
+      const [[data], [meta]] = await Promise.all([f.download(), f.getMetadata()]);
+      return send(res, 200, data, { 'Content-Type': meta.contentType || 'application/octet-stream', 'Cache-Control': 'private, max-age=300',
+        'Content-Disposition': `${req.query.download ? 'attachment' : 'inline'}; filename="${p.split('/').pop()}"` });
+    } catch { return send(res, 404, 'File not found.'); }
+  }
+
   /* Member self-updates: settings + submissions */
   if (route === 'updates' && req.method === 'GET') {
     return send(res, 200, { settings: await getSettings(), updates: await readUpdates() });
