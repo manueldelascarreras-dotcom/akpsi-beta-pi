@@ -957,3 +957,79 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
   .calm-agenda { border-left: 0; border-top: 1px solid var(--rule-2); max-height: none; }
   .calm-today { right: 60px; }
 }
+
+/* ─── Home: welcome hero ─── */
+.hero-welcome { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; min-height: 300px; padding: 40px 44px 110px; border-radius: 18px; overflow: hidden; color: #fff; background: var(--brand-deep) center 62% / cover; }
+.hero-welcome::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,29,53,.78) 0%, rgba(10,29,53,.38) 48%, rgba(10,29,53,.15) 100%), linear-gradient(180deg, rgba(10,29,53,0) 45%, rgba(10,29,53,.55) 100%); }
+.hero-welcome > * { position: relative; }
+.hw-copy h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(2.3rem, 4.4vw, 3.4rem); line-height: 1.02; letter-spacing: -.01em; margin: 10px 0 10px; color: #fff; }
+.hw-copy p:last-child { font-size: 1.05rem; color: rgba(255,255,255,.9); max-width: 46ch; }
+.hw-quote { max-width: 250px; margin-top: 14px; padding-left: 18px; border-left: 2px solid var(--gold); font-family: var(--serif); font-style: italic; font-size: 1.2rem; line-height: 1.35; color: rgba(255,255,255,.92); }
+
+/* ─── Home: program banner + 8-hole tracker (navy) ─── */
+.program-banner { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(240px, 330px) minmax(0, 1fr); gap: 28px; align-items: center; margin: -86px 20px 32px; padding: 22px 26px; border-radius: 16px; background: linear-gradient(180deg, #13335A, var(--brand-deep)); color: #fff; box-shadow: 0 20px 44px rgba(10,29,53,.28); border: 1px solid rgba(255,255,255,.06); }
+.pb-left { padding-right: 26px; border-right: 1px solid rgba(255,255,255,.14); }
+.program-banner .eyebrow { color: #E2C27E; }
+.program-banner h2 { font-family: var(--serif); font-weight: 600; font-size: 1.75rem; line-height: 1.1; letter-spacing: 0; color: #fff; margin: 6px 0 6px; }
+.pb-meta { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.8); font-size: .92rem; }
+.pb-meta i { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,.55); }
+.pb-progress { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+.pb-bar { flex: 1; height: 8px; border-radius: 999px; background: rgba(255,255,255,.14); overflow: hidden; }
+.pb-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #E2B04A, #F2D186); transition: width .5s var(--ease); }
+.pb-progress b { font-size: .84rem; font-weight: 600; color: rgba(255,255,255,.9); white-space: nowrap; }
+.holes-track { list-style: none; display: grid; grid-template-columns: repeat(8, minmax(64px, 1fr)); position: relative; padding-top: 18px; }
+.holes-track::before { content: ""; position: absolute; left: 6.25%; right: 6.25%; top: calc(18px + 20px); border-top: 1.5px dashed rgba(255,255,255,.28); }
+.holes-track li { position: relative; text-align: center; }
+.holes-track a { display: flex; flex-direction: column; align-items: center; gap: 3px; color: rgba(255,255,255,.62); text-decoration: none !important; padding: 0 2px; transition: transform .2s var(--ease); }
+.holes-track a:hover { transform: translateY(-2px); color: #fff; }
+.ht-dot { position: relative; z-index: 1; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.35); background: var(--brand-deep); font-weight: 700; font-size: .92rem; color: rgba(255,255,255,.75); margin-bottom: 6px; }
+.ht-dot svg { width: 18px; height: 18px; }
+.holes-track b { font-size: .95rem; color: inherit; }
+.ht-name { font-size: .74rem; line-height: 1.2; max-width: 92px; color: inherit; }
+.ht-pct { font-size: .7rem; font-weight: 700; color: #E2C27E; }
+.holes-track li.done a { color: #fff; }
+.holes-track li.done .ht-dot { border-color: #E2C27E; color: #F2D186; background: #102A4A; }
+.holes-track li.current a { color: #fff; }
+.holes-track li.current .ht-dot { width: 46px; height: 46px; margin-top: -3px; margin-bottom: 3px; border: 3px solid #E2B04A; color: #fff; font-size: 1rem; box-shadow: 0 0 0 6px rgba(226,176,74,.15); }
+.ht-flag { position: absolute; top: -22px; left: 50%; width: 14px; height: 20px; transform: translateX(-2px); }
+.ht-flag::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #F2D186; border-radius: 1px; }
+.ht-flag::after { content: ""; position: absolute; left: 2px; top: 0; border-left: 12px solid #E2B04A; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+
+/* ─── Caddie Notes ─── */
+.stream { grid-template-columns: 320px minmax(0, 1fr); }
+.caddie { border: 1px solid var(--rule); border-radius: 14px; padding: 16px 18px 14px; background: #fff; }
+.cn-head { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--rule-2); }
+.cn-head .flag { color: var(--gold-ink); }
+.cn-head h3 { flex: 1; font-family: var(--serif); font-weight: 600; font-size: 1.3rem; color: var(--ink); letter-spacing: 0; }
+.cn-new { padding: 3px 12px; border-radius: 999px; background: var(--gold); color: #fff; font-size: .78rem; font-weight: 700; }
+.caddie ul { list-style: none; }
+.cn-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--rule-2); }
+.cn-item:last-child { border-bottom: 0; }
+.cn-item .avatar { width: 40px; height: 40px; font-size: .86rem; }
+.cn-item .avatar.gold { background: #2A2112; color: #E2C27E; border-color: #2A2112; }
+.cn-item .grow b { display: block; font-weight: 700; color: var(--ink); line-height: 1.2; }
+.cn-role { display: block; font-size: .78rem; color: var(--muted); margin-top: 1px; }
+.cn-bubble { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: #FBF5E6; color: var(--ink); font-size: .88rem; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+.cn-when { display: block; margin-top: 6px; font-size: .74rem; color: var(--muted); }
+.cn-empty { padding: 16px 0 6px; color: var(--muted); font-size: .88rem; }
+.cn-all { display: block; text-align: center; padding-top: 10px; border-top: 1px solid var(--rule-2); font-weight: 700; font-size: .88rem; color: var(--brand); }
+.caddie-page { max-width: 760px; }
+.hero-pick button { height: 46px; }
+
+@media (max-width: 1180px) {
+  .program-banner { grid-template-columns: 1fr; }
+  .pb-left { padding-right: 0; border-right: 0; padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.14); }
+}
+@media (max-width: 960px) {
+  .stream { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .hero-welcome { padding: 26px 22px 96px; min-height: 240px; }
+  .hw-quote { display: none; }
+  .program-banner { margin: -76px 8px 24px; padding: 18px; }
+  .holes-track { display: flex; overflow-x: auto; gap: 4px; padding-bottom: 4px; scrollbar-width: none; }
+  .holes-track::-webkit-scrollbar { display: none; }
+  .holes-track li { flex: 0 0 76px; }
+  .holes-track::before { left: 38px; right: 38px; }
+}
+.stream-main > .upnext { margin-bottom: 10px; }

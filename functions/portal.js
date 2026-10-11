@@ -51,7 +51,14 @@ module.exports = ({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug
     const snap = await db.collection('portal').doc('program').get();
     const p = snap.exists ? snap.data() : {};
     const weeks = Array.from({ length: WEEKS }, (_, i) => ({ ...DEFAULT_WEEKS[i], ...(p.weeks?.[i] || {}) }));
-    return { className: p.className || 'Pledge Class', startDate: p.startDate || '', weeks };
+    return {
+      className: p.className || 'Pledge Class', startDate: p.startDate || '', weeks,
+      programName: p.programName || 'Pledge Education Program',
+      subtitle: p.subtitle || 'A stronger you',
+      tagline: p.tagline || 'Keep showing up. Different looks good on you.',
+      quote: p.quote || 'Discipline today builds the leaders of tomorrow.',
+      heroImage: p.heroImage || '',
+    };
   }
 
   /* An educator may see a pledge if that pledge is assigned to them. VPMs see everyone. */
@@ -99,6 +106,7 @@ module.exports = ({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug
     const [program, deliverables, resources, announcements, events, users, submissions] = await Promise.all([
       getProgram(), all('deliverables'), all('resources'), all('announcements'), all('portalEvents'), all('users'), all('submissions'),
     ]);
+    const notes = await all('notes');
     const byUid = Object.fromEntries(users.map(u => [u.uid, u]));
     const visiblePledges = users.filter(u => u.role === 'pledge' && u.active !== false && canSeePledge(me, u));
     const visibleSubs = submissions.filter(s => canSeePledge(me, byUid[s.pledgeUid]));
@@ -121,6 +129,7 @@ module.exports = ({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug
       people,
       submissions: visibleSubs,
     };
+    out.notes = notes.filter(n => canSeePledge(me, byUid[n.pledgeUid])).sort((a, b) => String(b.at).localeCompare(String(a.at)));
     if (role === 'vpm') out.invites = (await all('invites')).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
     return send(res, 200, out);
   }
@@ -298,13 +307,15 @@ module.exports = ({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug
     const program = {
       className: clean(b.className, 80) || 'Pledge Class',
       startDate: /^\d{4}-\d{2}-\d{2}$/.test(b.startDate) ? b.startDate : '',
+      programName: clean(b.programName, 80), subtitle: clean(b.subtitle, 80),
+      tagline: clean(b.tagline, 160), quote: clean(b.quote, 200), heroImage: clean(b.heroImage, 600),
       weeks: Array.from({ length: WEEKS }, (_, i) => {
         const w = b.weeks?.[i] || {};
         return { title: clean(w.title, 80), hole: clean(w.hole, 80), summary: clean(w.summary, 2000), image: clean(w.image, 600) };
       }),
     };
     await db.collection('portal').doc('program').set(program);
-    return send(res, 200, { ok: true, program });
+    return send(res, 200, { ok: true, program: await getProgram() });
   }
 
   /* ───────────── VPM: people ───────────── */
@@ -363,6 +374,32 @@ module.exports = ({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug
     return send(res, 200, { ok: true });
   }
 
+  /* ───────────── caddie notes: a personal note from a VPM or educator to a pledge ───────────── */
+
+  async function createNote(req, res, me) {
+    requireRole(me, 'educator', 'vpm');
+    const b = readJSONBody(req);
+    const body = clean(b.body, 2000);
+    if (!body) return send(res, 400, { error: 'Write the note first.', field: 'body' });
+    const pledgeSnap = await db.collection('users').doc(clean(b.pledgeUid, 128)).get();
+    const pledge = pledgeSnap.exists ? { ...pledgeSnap.data(), uid: pledgeSnap.id } : null;
+    if (!pledge || pledge.role !== 'pledge') return send(res, 404, { error: 'Pledge not found.' });
+    if (!canSeePledge(me, pledge)) return send(res, 403, { error: 'This pledge is not assigned to you.' });
+    const note = { pledgeUid: pledge.uid, by: me.uid, byName: me.user.name, byRole: me.user.role, body, at: now() };
+    const ref = await db.collection('notes').add(note);
+    return send(res, 200, { ok: true, note: { id: ref.id, ...note } });
+  }
+
+  async function deleteNote(req, res, me, id) {
+    requireRole(me, 'educator', 'vpm');
+    const ref = db.collection('notes').doc(id);
+    const snap = await ref.get();
+    if (!snap.exists) return send(res, 404, { error: 'Note not found.' });
+    if (snap.data().by !== me.uid && me.user.role !== 'vpm') return send(res, 403, { error: 'Only the author or a VPM can delete this note.' });
+    await ref.delete();
+    return send(res, 200, { ok: true });
+  }
+
   /* ───────────── router ───────────── */
 
   return async function handle(req, res, route) {
@@ -381,6 +418,8 @@ module.exports = ({ db, bucket, send, readForm, readJSONBody, sniff, clean, slug
     if (head === 'users' && a && M === 'PATCH') return updateUser(req, res, me, a);
     if (head === 'invites' && !a && M === 'POST') return createInvites(req, res, me);
     if (head === 'invites' && a && M === 'DELETE') return deleteInvite(req, res, me, a);
+    if (head === 'notes' && !a && M === 'POST') return createNote(req, res, me);
+    if (head === 'notes' && a && M === 'DELETE') return deleteNote(req, res, me, a);
     return send(res, 404, { error: 'Not found' });
   };
 };

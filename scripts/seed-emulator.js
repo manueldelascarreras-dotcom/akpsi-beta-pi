@@ -122,6 +122,8 @@ function pdf(title) {
   await review(s.p1hist, 'approve');
   await review(s.p2bio, 'revise', 'Add your hometown and why you chose AKPsi.');
   await review(s.p3bio, 'approve');
-  console.log('\nSeeded: program, 8 deliverables, resources, an announcement, 2 events, 9 submissions, 5 reviews.');
+  await call(tok.vpm, 'POST', 'notes', { pledgeUid: uid.p1, body: 'Great progress so far, Sofia. Focus on polishing your headshot this week.' });
+  await call(tok.edu, 'POST', 'notes', { pledgeUid: uid.p1, body: 'Your chapter history quiz shows real improvement. Keep the momentum going into Week 3!' });
+  console.log('\nSeeded: program, 8 deliverables, resources, an announcement, 2 events, 9 submissions, 5 reviews, 2 caddie notes.');
   console.log('Open http://127.0.0.1:5002/portal.html');
 })().catch(e => { console.error(e.message); process.exit(1); });

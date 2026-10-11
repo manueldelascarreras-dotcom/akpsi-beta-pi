@@ -98,7 +98,7 @@ function dueInfo(d, done) {
 
 /* ───────────── state ───────────── */
 
-const S = { me: null, program: { weeks: [] }, deliverables: [], resources: [], events: [], announcements: [], people: [], submissions: [], invites: [], subs: {} };
+const S = { me: null, program: { weeks: [] }, deliverables: [], resources: [], events: [], announcements: [], people: [], submissions: [], invites: [], notes: [], subs: {} };
 /* A VPM can preview the portal as any educator or pledge (read-only) */
 let viewAs = null;   // { uid, role, name } while previewing
 const role = () => viewAs?.role || S.me?.role;
@@ -137,7 +137,7 @@ function setViewAs(key) {
   const demo = key.startsWith('demo:');
   if (DEMO) { /* already on sample data */ }
   else if (demo && !demoBackup) {
-    demoBackup = { people: S.people, deliverables: S.deliverables, submissions: S.submissions, program: S.program, announcements: S.announcements, events: S.events, resources: S.resources };
+    demoBackup = { people: S.people, deliverables: S.deliverables, submissions: S.submissions, program: S.program, announcements: S.announcements, events: S.events, resources: S.resources, notes: S.notes };
     Object.assign(S, buildDemoClass());
   }
   else if (!demo && demoBackup) { Object.assign(S, demoBackup); demoBackup = null; }
@@ -186,7 +186,12 @@ function buildDemoClass() {
   }));
   const weeks = (S.program.weeks?.length ? S.program.weeks : DEMO_WEEKS).map(w => ({ ...w }));
   return {
-    program: { className: 'Sample pledge class', startDate: isoDay(start), weeks },
+    program: { className: 'Sample pledge class', startDate: isoDay(start), weeks, ...P_DEFAULTS, heroImage: '' },
+    notes: [
+      { id: 'demo-n1', pledgeUid: 'demo-p1', by: S.me.uid, byName: S.me.name, byRole: 'vpm', at: plus(at(3, 0, 10, 0), 0), body: 'Great progress so far, Sofia. Focus on polishing your headshot this week. It makes a big difference. Let me know if you want to review your resume before submitting!' },
+      { id: 'demo-n2', pledgeUid: 'demo-p2', by: 'demo-edu', byName: 'Jordan Reyes', byRole: 'educator', at: plus(at(2, 6, 9, 0), 0), body: 'Nice recovery on the history quiz. Let\u2019s get the creed reflection in this week.' },
+      { id: 'demo-n3', pledgeUid: 'demo-p1', by: 'demo-edu', byName: 'Jordan Reyes', byRole: 'educator', at: plus(at(2, 5, 18, 0), 0), body: 'Your chapter history quiz score shows real improvement. Keep the momentum going into Week 3!' },
+    ],
     people: [{ ...S.me }, edu, ...pledges],
     deliverables, submissions,
     announcements: [{ id: 'demo-a1', title: 'Week 3 kickoff', body: 'One-on-ones start this week. The sign-up sheet is in the group chat.', pinned: true, author: S.me.name, createdAt: plus(at(3, 0, 9, 0), 0) }],
@@ -350,6 +355,7 @@ const AUTH_ERRORS = {
 const authError = e => AUTH_ERRORS[e.code] || e.message || 'Something went wrong.';
 
 function showAuth(mode = 'signin', msg = '', prefill = {}) {
+  $$('.modal-wrap').forEach(m => m.remove());
   $('#boot').hidden = true; $('#app').hidden = true; $('#auth').hidden = false;
   const body = $('#authBody');
   const views = {
@@ -483,6 +489,7 @@ auth.onAuthStateChanged(user => {
 });
 
 async function load() {
+  $$('.modal-wrap').forEach(m => m.remove()); closeDrawer();
   try {
     const data = await api('GET', 'bootstrap');
     Object.assign(S, data);
@@ -502,9 +509,9 @@ async function load() {
 /* ───────────── shell + routing ───────────── */
 
 const NAV = {
-  pledge: [['home', 'Stream', I.home], ['classwork', 'Classwork', I.list], ['calendar', 'Calendar', I.cal], ['grades', 'Grades', I.flag], ['people', 'People', I.users]],
-  educator: [['home', 'Stream', I.home], ['classwork', 'Classwork', I.list], ['review', 'To review', I.inbox, 'queue'], ['pledges', 'My pledges', I.users], ['grades', 'Grades & lateness', I.flag], ['calendar', 'Calendar', I.cal], ['people', 'People', I.users]],
-  vpm: [['home', 'Stream', I.home], ['classwork', 'Classwork', I.list], ['review', 'To review', I.inbox, 'queue'], ['progress', 'Class progress', I.grid], ['grades', 'Grades & lateness', I.flag], ['calendar', 'Calendar', I.cal], '—Manage', ['people', 'People & access', I.users], ['cms/program', 'Weeks & class', I.flag]],
+  pledge: [['home', 'Home', I.home], ['classwork', 'Classwork', I.list], ['feedback', 'Caddie Notes', I.megaphone], ['calendar', 'Calendar', I.cal], ['grades', 'Grades', I.flag], ['people', 'People', I.users]],
+  educator: [['home', 'Home', I.home], ['classwork', 'Classwork', I.list], ['review', 'To review', I.inbox, 'queue'], ['pledges', 'My pledges', I.users], ['feedback', 'Caddie Notes', I.megaphone], ['grades', 'Grades & lateness', I.flag], ['calendar', 'Calendar', I.cal], ['people', 'People', I.users]],
+  vpm: [['home', 'Home', I.home], ['classwork', 'Classwork', I.list], ['review', 'To review', I.inbox, 'queue'], ['progress', 'Class progress', I.grid], ['feedback', 'Caddie Notes', I.megaphone], ['grades', 'Grades & lateness', I.flag], ['calendar', 'Calendar', I.cal], '—Manage', ['people', 'People & access', I.users], ['cms/program', 'Weeks & class', I.flag]],
 };
 const ROLE_NAME = { pledge: 'Pledge', educator: 'Pledge Educator', vpm: 'VPM' };
 const visibleSub = s => role() === 'vpm' || (role() === 'pledge' ? s.pledgeUid === meUid() : pledges().some(p => p.uid === s.pledgeUid));
@@ -556,9 +563,9 @@ function renderShell() {
 }
 
 const ROUTES = {
-  pledge: { home: vStream, classwork: vClasswork, calendar: vCalendar, grades: vMyGrades, people: vClassPeople, program: vProgram, week: vWeek, resources: vResources, overview: vPledgeHome },
-  educator: { home: vStream, classwork: vClasswork, review: vReviewList, pledges: vPledges, pledge: vPledge, grades: vGrades, calendar: vCalendar, people: vClassPeople, program: vProgram, week: vWeek, resources: vResources, dashboard: vEducatorHome },
-  vpm: { home: vStream, classwork: vClasswork, review: vReviewList, progress: vVpmHome, pledges: vPledges, pledge: vPledge, grades: vGrades, people: vPeople, calendar: vCalendar, program: vProgram, week: vWeek, resources: vResources,
+  pledge: { feedback: vFeedback, home: vStream, classwork: vClasswork, calendar: vCalendar, grades: vMyGrades, people: vClassPeople, program: vProgram, week: vWeek, resources: vResources, overview: vPledgeHome },
+  educator: { feedback: vFeedback, home: vStream, classwork: vClasswork, review: vReviewList, pledges: vPledges, pledge: vPledge, grades: vGrades, calendar: vCalendar, people: vClassPeople, program: vProgram, week: vWeek, resources: vResources, dashboard: vEducatorHome },
+  vpm: { feedback: vFeedback, home: vStream, classwork: vClasswork, review: vReviewList, progress: vVpmHome, pledges: vPledges, pledge: vPledge, grades: vGrades, people: vPeople, calendar: vCalendar, program: vProgram, week: vWeek, resources: vResources,
     'cms/program': vCmsProgram, 'cms/deliverables': vCmsDeliverables, 'cms/resources': vCmsResources, 'cms/announcements': vCmsAnnouncements },
 };
 
@@ -608,11 +615,125 @@ const isPdfPath = p => /\.pdf$/i.test(p || '') || String(p || '').startsWith('de
 const isImgPath = p => /\.(png|jpe?g|webp|gif)$/i.test(p || '');
 const canEdit = () => role() === 'vpm' && !viewAs && !DEMO || (DEMO && role() === 'vpm');
 
+/* ───────────── Home: welcome hero, 8-hole tracker, Caddie Notes ───────────── */
+
+const HERO_DEFAULT = 'images/portal/hero-fairway.jpg';
+const P_DEFAULTS = { programName: 'Pledge Education Program', subtitle: 'A stronger you', tagline: 'Keep showing up. Different looks good on you.', quote: 'Discipline today builds the leaders of tomorrow.' };
+const prog = k => S.program[k] || P_DEFAULTS[k] || '';
+const heroImage = () => S.program.heroImage ? photo(S.program.heroImage, 1800) : HERO_DEFAULT;
+
+/* One entry per hole: done / current / upcoming, plus a % for staff */
+function holeStates() {
+  const wk = currentWeek();
+  const today = isoDay(new Date());
+  return [1, 2, 3, 4, 5, 6, 7, 8].map(n => {
+    const list = weekDelivs(n);
+    let pct, done;
+    if (role() === 'pledge') {
+      const ok = list.filter(d => statusOf(d, meUid()).key === 'approved').length;
+      const r = weekRange(n);
+      done = list.length ? ok === list.length : Boolean(r && isoDay(r[1]) < today);
+      pct = list.length ? Math.round(ok / list.length * 100) : (done ? 100 : 0);
+    } else {
+      pct = classProgress(list).pct;
+      done = list.length > 0 && pct === 100;
+    }
+    return { n, title: S.program.weeks[n - 1]?.title || `Week ${n}`, done, current: n === wk, pct, count: list.length };
+  });
+}
+
+function holeTracker() {
+  const holes = holeStates();
+  const staff = role() !== 'pledge';
+  const completed = holes.filter(h => h.done).length;
+  const overall = staff ? classProgress(S.deliverables).pct : Math.round(completed / 8 * 100);
+  return `<section class="program-banner">
+    <div class="pb-left">
+      <p class="eyebrow">${staff ? 'Your class' : 'Your program'}</p>
+      <h2>${esc(prog('programName'))}</h2>
+      <p class="pb-meta">8 weeks <i></i> 8 holes <i></i> ${esc(prog('subtitle'))}</p>
+      <div class="pb-progress"><div class="pb-bar"><span style="width:${overall}%"></span></div>
+        <b>${staff ? `${overall}% of class work approved` : `${completed} of 8 completed`}</b></div>
+    </div>
+    <ol class="holes-track" aria-label="Eight holes">
+      ${holes.map(h => `<li class="${h.done ? 'done' : ''} ${h.current ? 'current' : ''}">
+        <a href="#/week/${h.n}" title="Week ${h.n}: ${esc(h.title)}${staff ? ` · ${h.pct}% approved` : ''}">
+          ${h.current ? '<span class="ht-flag" aria-hidden="true"></span>' : ''}
+          <span class="ht-dot">${h.done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : h.n}</span>
+          <b>${h.n}</b><span class="ht-name">${esc(h.title)}</span>
+          ${staff && h.count ? `<span class="ht-pct">${h.pct}%</span>` : ''}
+        </a></li>`).join('')}
+    </ol>
+  </section>`;
+}
+
+/* Feedback a pledge has received: personal notes + comments left while reviewing */
+function caddieNotesFor(uid) {
+  const fromNotes = (S.notes || []).filter(n => !uid || n.pledgeUid === uid).map(n => ({ at: n.at, by: n.by, name: n.byName, role: n.byRole, body: n.body, pledgeUid: n.pledgeUid, id: n.id, kind: 'note' }));
+  const fromReviews = S.submissions.filter(s => (!uid || s.pledgeUid === uid) && visibleSub(s)).flatMap(s => (s.history || [])
+    .filter(h => h.by !== s.pledgeUid && h.comment)
+    .map(h => ({ at: h.at, by: h.by, name: h.byName, role: byUid(h.by)?.role || 'educator', body: h.comment, pledgeUid: s.pledgeUid, about: deliv(s.deliverableId)?.name, grade: h.grade, deliverableId: s.deliverableId, kind: 'review' })));
+  return [...fromNotes, ...fromReviews].sort((a, b) => String(b.at).localeCompare(String(a.at)));
+}
+const notesSeenKey = () => `bp-notes-seen-${meUid()}`;
+const notesSeen = () => { try { return localStorage.getItem(notesSeenKey()) || ''; } catch { return ''; } };
+const markNotesSeen = () => { try { localStorage.setItem(notesSeenKey(), new Date().toISOString()); } catch {} };
+const roleLine = r => r === 'vpm' ? 'VPM' : r === 'educator' ? 'Pledge Educator' : ROLE_NAME[r] || '';
+
+function noteItem(n, { showPledge = false } = {}) {
+  return `<li class="cn-item">
+    <div class="avatar ${n.role === 'vpm' ? 'gold' : 'navy'}">${initials(n.name)}</div>
+    <div class="grow">
+      <b>${esc(n.name)}</b><span class="cn-role">${roleLine(n.role)}${showPledge ? ` → ${esc(byUid(n.pledgeUid)?.name || '')}` : ''}${n.about ? ` · on ${esc(n.about)}` : ''}${n.grade != null ? ` · ${n.grade}/100` : ''}</span>
+      <p class="cn-bubble">${linkify(n.body)}</p>
+      <span class="cn-when">${ago(n.at)}</span>
+    </div></li>`;
+}
+
+function caddieCard() {
+  const pledge = role() === 'pledge';
+  const list = caddieNotesFor(pledge ? meUid() : null);
+  const seen = notesSeen();
+  const fresh = pledge ? list.filter(n => n.at > seen).length : 0;
+  return `<section class="caddie">
+    <div class="cn-head"><span class="flag" aria-hidden="true"></span><h3>Caddie Notes</h3>${fresh ? `<span class="cn-new">${fresh} new</span>` : ''}</div>
+    ${list.length ? `<ul>${list.slice(0, 3).map(n => noteItem(n, { showPledge: !pledge })).join('')}</ul>`
+      : `<p class="cn-empty">${pledge ? 'Notes from your pledge educator and VPMs will show up here.' : 'Notes you and other educators send pledges show up here.'}</p>`}
+    <a class="cn-all" href="#/feedback">View all feedback →</a>
+  </section>`;
+}
+
+function vFeedback() {
+  setTitle(role() === 'pledge' ? 'Caddie Notes' : 'Feedback');
+  const pledge = role() === 'pledge';
+  const list = caddieNotesFor(pledge ? meUid() : null);
+  if (pledge) markNotesSeen();
+  view(`<div class="page-intro row wrap"><p class="grow">${pledge ? 'Every note and comment from your pledge educator and VPMs, newest first.' : 'Notes and review comments sent to your pledges, newest first.'}</p>
+      ${!pledge ? `<button class="btn primary" id="newNote">${I.plus}Send a caddie note</button>` : ''}</div>
+    <section class="caddie caddie-page">${list.length ? `<ul>${list.map(n => noteItem(n, { showPledge: !pledge })).join('')}</ul>` : '<p class="cn-empty">No feedback yet.</p>'}</section>`);
+  $('#newNote')?.addEventListener('click', () => noteModal(null));
+}
+
+/* VPMs and educators send a personal note to a pledge */
+function noteModal(pledgeUid) {
+  const options = pledges();
+  if (!options.length) return toast('No pledges to send a note to yet.', true);
+  const m = modal('Send a caddie note', `<div class="stack">
+    <label class="f"><span>To</span><select class="select" id="nTo">${options.map(p => `<option value="${p.uid}" ${p.uid === pledgeUid ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>
+    <label class="f"><span>Note</span><textarea class="textarea" id="nBody" rows="5" placeholder="Great progress so far. Focus on polishing your headshot this week."></textarea>
+      <small>Shows up in their Caddie Notes on the home page.</small></label></div>`, 'Send note');
+  m.onOk = async () => {
+    const r = await api('POST', 'notes', { pledgeUid: $('#nTo', m.el).value, body: $('#nBody', m.el).value });
+    S.notes = [r.note, ...(S.notes || [])];
+    toast(`Note sent to ${first(byUid(r.note.pledgeUid)?.name)}.`); route();
+  };
+}
+
 /* ── Stream ── */
 function vStream() {
   const wk = currentWeek() || 1;
   const W = S.program.weeks[wk - 1] || {};
-  setTitle('Stream');
+  setTitle('Home');
   const pledge = role() === 'pledge';
   const nowIso = new Date().toISOString();
   const upcoming = S.deliverables.filter(d => d.dueAt && d.dueAt >= nowIso && (!pledge || !['approved', 'submitted', 'late'].includes(statusOf(d, meUid()).key)))
@@ -622,7 +743,7 @@ function vStream() {
       <div class="post-head"><div class="avatar sm gold">${initials(a.author)}</div><div class="grow"><b>${esc(a.author || 'VPM')}</b><span>${ago(a.createdAt)}${a.pinned ? ' · Pinned' : ''}</span></div>
       ${canEdit() ? `<button class="icon-btn" data-edit-a="${a.id}" title="Edit">${I.edit}</button>` : ''}</div>
       <h3>${esc(a.title)}</h3><p>${linkify(a.body)}</p></article>`, pin: a.pinned })),
-    ...(pledge ? S.submissions.filter(s => s.pledgeUid === meUid()).flatMap(s => (s.history || []).filter(h => h.by !== meUid() && h.action !== 'commented' || (h.by !== meUid() && h.comment)).map(h => ({ at: h.at, html: `<article class="post post-mini" data-open-d="${s.deliverableId}">
+    ...(false ? S.submissions.filter(s => s.pledgeUid === meUid()).flatMap(s => (s.history || []).filter(h => h.by !== meUid() && h.action !== 'commented' || (h.by !== meUid() && h.comment)).map(h => ({ at: h.at, html: `<article class="post post-mini" data-open-d="${s.deliverableId}">
       <div class="post-icon ${h.action === 'approved' ? 'ok' : 'fix'}">${h.action === 'approved' ? '✓' : '↺'}</div>
       <div class="grow"><b>${esc(h.byName)}</b> ${esc(h.action)} <b>${esc(deliv(s.deliverableId)?.name || '')}</b>${h.grade != null ? ` · ${h.grade}/100` : ''}${h.comment ? `<p>${linkify(h.comment)}</p>` : ''}<span>${ago(h.at)}</span></div></article>` }))) : []),
     ...(!pledge ? S.submissions.filter(s => visibleSub(s) && deliv(s.deliverableId)).map(s => ({ at: s.submittedAt, html: `<a class="post post-mini" href="#/review/${s.id}">
@@ -630,17 +751,26 @@ function vStream() {
   ].sort((a, b) => (b.pin === true) - (a.pin === true) || String(b.at).localeCompare(String(a.at))).slice(0, 14);
 
   view(`
-    <section class="stream-banner" style="background-image:url('${weekPhoto(wk, 1600)}')">
-      <div><p class="eyebrow light">${weekLabel(wk)}</p><h1>${esc(S.program.className)}</h1><p class="sb-sub">${esc(W.title || '')}${W.hole ? ` · <em>${esc(W.hole)}</em>` : ''}</p></div>
+    <section class="hero-welcome" style="background-image:url('${heroImage()}')">
+      <div class="hw-copy"><p class="eyebrow light">${weekLabel(wk)} · ${esc(W.title || '')}</p>
+        <h1>Welcome back, ${esc(first(meName()))}.</h1><p>${esc(prog('tagline'))}</p></div>
+      ${prog('quote') ? `<blockquote class="hw-quote">${esc(prog('quote'))}</blockquote>` : ''}
     </section>
+    ${holeTracker()}
     <div class="stream">
       <aside class="stream-side">
-        <div class="side-card"><h4>Upcoming</h4>
+        ${caddieCard()}
+        ${pledge ? '' : `<div class="side-card"><h4>Upcoming</h4>
           ${upcoming.length ? upcoming.map(d => `<button class="up-item" data-open-d="${d.id}"><span>Due ${fmt(d.dueAt, { weekday: 'short', month: 'short', day: 'numeric' })}</span>${esc(d.name)}</button>`).join('') : `<p class="muted small">${pledge ? 'Woohoo, nothing due soon.' : 'No upcoming due dates.'}</p>`}
-          <a class="side-link" href="#/classwork">View all</a></div>
+          <a class="side-link" href="#/classwork">View all</a></div>`}
         ${!pledge ? `<div class="side-card"><h4>To review</h4><p class="side-big">${reviewQueue().length}</p><a class="side-link" href="#/review">Open review queue</a></div>` : ''}
       </aside>
       <div class="stream-main">
+        ${pledge ? (() => { const order = { revision: 0, missing: 1, notstarted: 2, late: 3, submitted: 4 };
+          const open = S.deliverables.map(d => ({ d, st: statusOf(d, meUid()) })).filter(x => x.st.key !== 'approved')
+            .sort((a, b) => order[a.st.key] - order[b.st.key] || String(a.d.dueAt || '9').localeCompare(String(b.d.dueAt || '9')));
+          return `<section class="card upnext"><div class="card-head"><h2>Up next</h2><span class="grow"></span><a class="btn sm ghost" href="#/classwork">All classwork</a></div>
+            ${open.length ? `<ul class="dlist">${open.slice(0, 5).map(x => ditem(x.d)).join('')}</ul>` : '<div class="empty"><b>All caught up</b>Everything assigned so far is approved.</div>'}</section>`; })() : ''}
         ${canEdit() ? `<button class="composer" id="announce"><div class="avatar sm gold">${initials(meName())}</div><span>Announce something to your class</span></button>` : ''}
         ${posts.length ? posts.map(p => p.html).join('') : '<div class="empty">This is where announcements and feedback show up.</div>'}
       </div>
@@ -1400,6 +1530,7 @@ function missingList(list) {
     </tbody></table></div>` : '<div class="empty">Nothing missing.</div>'}</div>`;
 }
 
+document.addEventListener('click', e => { const b = e.target.closest('[data-note-to]'); if (b) noteModal(b.dataset.noteTo); });
 function vPledge(uid) {
   const p = byUid(uid);
   if (!p) { location.hash = '#/pledges'; return; }
@@ -1410,7 +1541,7 @@ function vPledge(uid) {
       <div class="avatar" style="width:54px;height:54px;font-size:1rem">${initials(p.name)}</div>
       <div class="grow"><h2 class="serif" style="font-size:1.8rem;color:var(--brand);line-height:1.1">${esc(p.name)}</h2>
         <p class="muted small">${[p.email, `Educator: ${byUid(p.educatorUid)?.name || 'not assigned'}`].filter(Boolean).map(esc).join(' · ')}</p></div>
-      <div class="row" style="gap:8px">${pill({ key: 'approved', label: `${x.approved} approved` })}${x.review ? pill({ key: 'submitted', label: `${x.review} to review` }) : ''}${x.revision ? pill({ key: 'revision', label: `${x.revision} revision` }) : ''}${x.missing ? pill({ key: 'missing', label: `${x.missing} missing` }) : ''}</div>
+      <div class="row" style="gap:8px">${pill({ key: 'approved', label: `${x.approved} approved` })}${x.review ? pill({ key: 'submitted', label: `${x.review} to review` }) : ''}${x.revision ? pill({ key: 'revision', label: `${x.revision} revision` }) : ''}${x.missing ? pill({ key: 'missing', label: `${x.missing} missing` }) : ''}<button class="btn sm primary" data-note-to="${p.uid}">${I.megaphone}Send a caddie note</button></div>
     </div></div>
     <div class="card" style="margin-bottom:20px"><div class="card-head"><h2>Scorecard</h2></div>${scorecard(p.uid)}</div>
     <div class="card">${[1, 2, 3, 4, 5, 6, 7, 8].filter(n => weekDelivs(n).length).map(n => `
@@ -1763,7 +1894,17 @@ function vCmsProgram() {
       <label class="f"><span>Class name</span><input class="input" id="pClass" value="${esc(P.className)}" placeholder="Fall 2026 Pledge Class"></label>
       <div class="f"><span>Week 1 starts</span>${dateField('pStart', P.startDate)}<small class="f-help">Each week runs 7 days from here. The portal highlights the current week.</small></div>
     </div></div>
-    <div class="card"><div class="card-head"><h2>The eight weeks</h2><span class="grow"></span><span class="small muted">Week numbers always show; the hole caption is the golf touch.</span></div>
+    <div class="card" style="margin-bottom:20px"><div class="card-head"><h2>Home banner</h2><span class="grow"></span><span class="small muted">What everyone sees at the top of the home page.</span></div>
+      <div class="card-body grid2">
+        <label class="f"><span>Program name</span><input class="input" id="pName" value="${esc(prog('programName'))}"></label>
+        <label class="f"><span>Subtitle</span><input class="input" id="pSub" value="${esc(prog('subtitle'))}" placeholder="A stronger you"><small>Shows as "8 weeks · 8 holes · …"</small></label>
+        <label class="f full"><span>Welcome line</span><input class="input" id="pTag" value="${esc(prog('tagline'))}"></label>
+        <label class="f full"><span>Quote</span><input class="input" id="pQuote" value="${esc(prog('quote'))}"><small>Leave empty to hide it.</small></label>
+        <div class="f full"><span>Hero photo</span><div class="photo-pick hero-pick">
+          <button type="button" data-hero="" class="${!P.heroImage ? 'on' : ''}" style="background-image:url('${HERO_DEFAULT}')" aria-label="Fairway at golden hour"></button>
+          ${PHOTOS.map(id => `<button type="button" data-hero="${id}" class="${P.heroImage === id ? 'on' : ''}" style="background-image:url('${photo(id, 160)}')" aria-label="Use this photo"></button>`).join('')}</div></div>
+      </div></div>
+    <div class="card"><div class="card-head"><h2>The eight weeks</h2><span class="grow"></span><span class="small muted">Each week's title is the label under its hole on the home page.</span></div>
       ${P.weeks.map((w, i) => `<div class="week-editor" data-w="${i}">
         <div><div class="thumb" style="background-image:url('${photo(w.image || PHOTOS[i % PHOTOS.length], 400)}')"><span>Week ${i + 1}</span></div>
           <div class="photo-pick">${PHOTOS.map(id => `<button type="button" data-photo="${id}" class="${(w.image || PHOTOS[i % PHOTOS.length]) === id ? 'on' : ''}" style="background-image:url('${photo(id, 160)}')" aria-label="Use this photo"></button>`).join('')}</div></div>
@@ -1776,6 +1917,8 @@ function vCmsProgram() {
     <div class="row" style="position:sticky;bottom:16px;margin-top:18px;justify-content:flex-end"><button class="btn primary lg" id="pSave">Save program</button></div>`);
   mountDatePickers($('#view'));
   $('#view').onclick = e => {
+    const h = e.target.closest('[data-hero]');
+    if (h) { P.heroImage = h.dataset.hero; $$('[data-hero]').forEach(x => x.classList.toggle('on', x === h)); return; }
     const b = e.target.closest('[data-photo]');
     if (!b) return;
     const ed = b.closest('[data-w]'), i = +ed.dataset.w;
@@ -1785,6 +1928,7 @@ function vCmsProgram() {
   };
   $('#pSave').onclick = async () => {
     P.className = $('#pClass').value; P.startDate = $('#pStart').value;
+    P.programName = $('#pName').value; P.subtitle = $('#pSub').value; P.tagline = $('#pTag').value; P.quote = $('#pQuote').value;
     $$('[data-w]').forEach(ed => { const i = +ed.dataset.w; $$('[data-k]', ed).forEach(inp => { P.weeks[i][inp.dataset.k] = inp.value; }); });
     try { const r = await api('PUT', 'program', P); S.program = r.program; renderShell(); toast('Program saved.'); }
     catch (e) { toast(e.message, true); }
