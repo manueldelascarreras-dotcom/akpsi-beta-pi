@@ -1,6 +1,6 @@
 # AKPsi Beta Pi Website
 
-The chapter website, a rush application form, and a CMS to manage everything. It is live on Firebase at **https://umiami-akpsi.web.app** (CMS: https://umiami-akpsi.web.app/admin.html). The code is on GitHub at manueldelascarreras-dotcom/akpsi-beta-pi.
+The pledge portal (home page), the chapter website, a rush application form, and a Pledge CMS for the VPM and educators. It is live on Firebase at **https://umiami-akpsi.web.app** (Pledge CMS: https://umiami-akpsi.web.app/admin.html). The code is on GitHub at manueldelascarreras-dotcom/akpsi-beta-pi.
 
 ## Run it locally
 
@@ -46,36 +46,20 @@ Try it locally with sample data: run `firebase emulators:start`, then `node scri
 | `apply.html` | Rush application form |
 | `admin.html` | CMS (password protected) |
 
-## The CMS
+## The CMS (pledge program)
 
-| Section | What you can do |
+`admin.html` is the Pledge CMS: a password-protected, read-only view of the pledge program for the VPM and pledge educators. It covers only pledges; the chapter site, brothers, rush, events, and gallery are no longer edited here.
+
+| Section | What it shows |
 |---|---|
-| **Pledge program** | |
-| Submissions | Every deliverable pledges turned in: who, which assignment, the due time, the exact time it was turned in (and the first time, if resubmitted), on time or how late, status, grade, who reviewed it, and the files. Filter by week, status (waiting, needs revision, approved, late, missing) or name. Export to Excel. |
+| Overview | The current week of the 8-week program, how much class work is approved each week, counts to review / late / missing, who needs attention, what is due next, and the latest turn-ins. |
+| Submissions | Every deliverable pledges turned in: who, which assignment, the due time, the exact time it was turned in (and the first time, if resubmitted), on time or how late, status, grade, who reviewed it, and the files. Filter by status, week, assignment, or name. Export to Excel. |
 | Assignments | Each deliverable with its week, due time, and how many turned it in, are waiting, late, missing, or approved, plus the average grade. Click one to see its submissions. |
-| Pledges | Every pledge with their educator, approved count, average grade, late and missing counts, and last turn-in. Export to Excel. |
-| **Chapter website** | |
-| Rush applications | See every applicant per semester: how many applied, on time vs. late, applications per day, and status counts. Click anyone to see their headshot, resume, and answers, set a status (New, Reviewing, Interview, Bid extended, Not moving forward), and keep private notes. Export a semester to Excel. |
-| Members | Import an Excel sheet to update every member and their LinkedIn at once (download the template to see the columns). You can also add, edit, reorder, or remove people one at a time and upload headshots. |
-| Events | Month calendar: click a day to add an event, click an event to edit it. A List view and Excel import are also available. |
-| Gallery | Upload photos with a title and description. They show in "Life at Beta Pi" on the About page. |
-| Rush Settings | Semester, deadline, open/closed, and the rush timeline. Changing the semester starts a fresh list; older semesters stay in Applications. |
-| Site Content | Social links, About video, core value photos, stats, spotlight, philanthropy text, network logos, and an advanced editor for everything else. |
+| Pledges | Every pledge with their educator, approved count, average grade, late and missing counts, and last turn-in. Click a pledge to open a panel with all their work by week. Export to Excel. |
 
-The Pledge program pages read the pledge portal data (Firestore `portal`, `users`, `deliverables`, `submissions`) through `/api/admin/portal`, and open files through `/api/admin/portal-file`. They are read-only: reviewing, grading, and posting assignments happen in the pledge portal. They need Firebase (live or the local emulators), not `server.js`.
+The pages read the pledge portal data (Firestore `portal`, `users`, `deliverables`, `submissions`) through `/api/admin/portal`, and open files through `/api/admin/portal-file`. Reviewing, grading, posting assignments, and invite codes happen in the pledge portal. The CMS needs Firebase (live or the local emulators), not `server.js`.
 
-### Profile update link
-
-Brothers add their own headshot and LinkedIn at `update.html`. They search for their name, upload a photo, paste their LinkedIn URL, fix their major, pledge class, or graduation year, and enter the chapter code. Their card updates on the Members page right away.
-
-Manage it at the top of **Members** in the CMS: copy the invite message for the group chat, change the code, pause updates, or turn on "Review updates before they go live". Every update is listed there with Undo (or Approve / Reject when review is on). On the live site the code, settings and update log live in Firestore (`private/settings`, `private/updates`).
-
-Edits show a "Save changes" bar. Nothing changes on the website until you save. Excel imports and photo uploads publish right away.
-
-### Excel columns
-
-- **Members:** Name, Group, Role, Major, Minor, Pledge Class, Graduation Year, LinkedIn, Photo. Group can be E-Board, Pledge Educator, Brother, or NIB (several are allowed, separated by commas). Column names don't have to match exactly; "Full Name", "Position", or "Class Of" work too.
-- **Events:** Title, Date, Time, Location, Type.
+Brothers can still update their own headshot and LinkedIn at `update.html` with the chapter code; the server routes for that are unchanged.
 
 ## How applications work
 

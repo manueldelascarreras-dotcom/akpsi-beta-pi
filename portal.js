@@ -526,7 +526,9 @@ function renderShell() {
   /* VPMs get a "View as" switcher: real people, or a sample class that lives only in the browser */
   const real = demoBackup ? demoBackup.people : S.people;
   const opt = (v, label) => `<option value="${v}" ${viewKey === v ? 'selected' : ''}>${esc(label)}</option>`;
-  const viewAsBox = S.me.role === 'vpm' && !DEMO ? `<label class="view-as"><span>View as</span><select id="viewAs">
+  const demoCur = viewAs ? viewAs.role : 'vpm';
+  const viewAsBox = DEMO ? `<label class="view-as"><span>View as</span><select id="demoAs">${[['pledge', 'Pledge'], ['educator', 'Pledge educator'], ['vpm', 'VPM']].map(([k, l]) => `<option value="${k}" ${demoCur === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`
+    : S.me.role === 'vpm' ? `<label class="view-as"><span>View as</span><select id="viewAs">
       ${opt('', 'Myself (VPM)')}
       <optgroup label="Sample class (demo data)">${opt('demo:vpm', 'VPM dashboard')}${opt('demo:educator', 'Pledge educator')}${opt('demo:pledge', 'Pledge')}</optgroup>
       ${real.some(p => p.role === 'educator' && p.active !== false) ? `<optgroup label="Pledge educators">${real.filter(p => p.role === 'educator' && p.active !== false).map(p => opt(p.uid, p.name)).join('')}</optgroup>` : ''}
@@ -537,25 +539,13 @@ function renderShell() {
   $('#sideUser').innerHTML = `${viewAsBox}<div class="side-me">
     <div class="avatar ${shownRole === 'vpm' ? 'gold' : shownRole === 'educator' ? 'navy' : ''}">${initials(shownName)}</div>
     <div class="who"><b>${esc(shownName)}</b><small>${ROLE_NAME[shownRole]}${DEMO ? ' · preview' : ''}</small></div>
-    <button class="icon-btn" data-auth="signout" title="Sign out" aria-label="Sign out">${I.out}</button></div>`;
+    <button class="icon-btn" data-auth="signout" title="${DEMO ? 'Exit preview' : 'Sign out'}" aria-label="${DEMO ? 'Exit preview' : 'Sign out'}">${I.out}</button></div>`;
   const sel = $('#viewAs');
   if (sel) sel.onchange = () => setViewAs(sel.value);
-  if (DEMO) {
-    const cur = viewAs ? viewAs.role : 'vpm';
-    $('#previewBar').hidden = false;
-    $('#previewBar').innerHTML = `<span><b>Preview</b> · sample pledge class · nothing is saved</span>
-      <div class="seg seg-sm">${[['pledge', 'Pledge'], ['educator', 'Pledge educator'], ['vpm', 'VPM']].map(([k, l]) => `<button type="button" class="${cur === k ? 'on' : ''}" data-demo-as="${k}">${l}</button>`).join('')}</div>
-      <button class="btn sm" id="exitDemo">Exit preview</button>`;
-    $$('[data-demo-as]').forEach(b => b.onclick = () => setViewAs(b.dataset.demoAs === 'vpm' ? '' : `demo:${b.dataset.demoAs}`));
-    $('#exitDemo').onclick = exitDemo;
-    $('#sideUser').querySelector('[data-auth="signout"]')?.addEventListener('click', e => { e.stopPropagation(); exitDemo(); }, true);
-  } else {
-  $('#previewBar').hidden = !viewKey;
-  if (viewKey) $('#previewBar').innerHTML = demoBackup
-    ? `<span>Sample class · ${viewAs ? `viewing as <b>${esc(viewAs.name)}</b> · ${ROLE_NAME[role()]}` : '<b>VPM view</b>'} · demo data, nothing is saved</span><button class="btn sm" id="exitPreview">Back to my view</button>`
-    : `<span>Viewing as <b>${esc(viewAs.name)}</b> · ${ROLE_NAME[viewAs.role]} · read-only</span><button class="btn sm" id="exitPreview">Back to my view</button>`;
-  $('#exitPreview')?.addEventListener('click', () => setViewAs(''));
-  }
+  const dsel = $('#demoAs');
+  if (dsel) dsel.onchange = () => setViewAs(dsel.value === 'vpm' ? '' : `demo:${dsel.value}`);
+  $('#previewBar').hidden = true;
+  if (DEMO) $('#sideUser').querySelector('[data-auth="signout"]')?.addEventListener('click', e => { e.stopPropagation(); exitDemo(); }, true);
   const wk = currentWeek();
   $('#topWeek').innerHTML = wk === 0
     ? `<span class="lbl">${esc(S.program.className)} ·</span> <b>Starts ${fmtDay(S.program.startDate + 'T00:00')}</b>`
@@ -780,52 +770,136 @@ function vStream() {
 }
 
 /* ── Classwork ── */
-let cwTopic = 'all';
+let cwTopic = '';   // '' = this week's hole, '1'–'8' = a hole, '0' = the clubhouse (general resources)
+/* A 9-hole course: holes 1–8 are the weeks, hole 9 is the clubhouse hole (general resources). Positions in a 1200 × 440 viewBox. */
+const COURSE = [[105, 320], [228, 135], [355, 300], [480, 120], [608, 290], [735, 115], [862, 285], [990, 120], [1112, 290]];
+const fairwayPath = () => {
+  const p = COURSE;
+  let d = `M ${p[0][0] - 70} ${p[0][1] + 60} Q ${p[0][0] - 40} ${p[0][1]} ${p[0][0]} ${p[0][1]}`;
+  for (let i = 1; i < p.length; i++) {
+    const [x0, y0] = p[i - 1], [x1, y1] = p[i];
+    d += ` C ${x0 + 70} ${y0}, ${x1 - 70} ${y1}, ${x1} ${y1}`;
+  }
+  return d;
+};
+
+function courseMap(sel) {
+  const holes = [...holeStates(), { n: 9, title: 'Clubhouse', topic: '0', done: false, current: false }];
+  const tree = (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><circle r="17" fill="#2E6B3A"/><circle cx="-7" cy="-5" r="11" fill="#3C8048"/><circle cx="6" cy="4" r="8" fill="#245A30"/></g>`;
+  const trees = [[40, 90, 1.1], [70, 150, .8], [170, 50, .9], [330, 50, 1], [290, 400, .9], [420, 400, 1.1], [420, 215, .7], [610, 50, .9], [545, 400, 1], [800, 50, .8], [800, 390, 1], [930, 50, 1], [930, 400, .9], [1170, 60, 1], [1060, 200, .8], [30, 400, .9], [1180, 400, .8]];
+  return `<div class="course-wrap"><svg class="course" viewBox="0 0 1200 440" role="img" aria-label="Golf course with eight holes, one per week">
+    <defs>
+      <linearGradient id="grass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E9B52"/><stop offset="1" stop-color="#4C8745"/></linearGradient>
+      <pattern id="mow" width="56" height="56" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="28" height="56" fill="#fff" opacity=".05"/></pattern>
+      <radialGradient id="green" cx=".4" cy=".35"><stop offset="0" stop-color="#9BD07F"/><stop offset="1" stop-color="#78B962"/></radialGradient>
+    </defs>
+    <rect width="1200" height="440" fill="url(#grass)"/><rect width="1200" height="440" fill="url(#mow)"/>
+    <path d="M 600 470 C 560 410, 640 360, 700 380 S 790 450, 760 470 Z" fill="#5FA8D3" opacity=".9"/>
+    <path d="M 300 -10 C 330 40, 410 30, 440 -10 Z" fill="#5FA8D3" opacity=".85"/>
+    <path class="fairway" d="${fairwayPath()}"/>
+    <path class="fairway-stripe" d="${fairwayPath()}"/>
+    ${[[190, 260, 26, 13, -20], [345, 205, 22, 11, 30], [500, 215, 24, 12, -35], [655, 190, 22, 11, 25], [810, 200, 26, 12, -30], [955, 180, 22, 11, 20], [1050, 240, 18, 10, -10], [470, 345, 20, 10, 10], [930, 330, 22, 11, -15]].map(([x, y, rx, ry, r]) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${r} ${x} ${y})" fill="#E9D9A6" stroke="#D6C38A" stroke-width="2"/>`).join('')}
+    ${trees.map(t => tree(...t)).join('')}
+    ${holes.map((h, i) => { const [x, y] = COURSE[i]; const topic = h.topic || String(h.n), on = topic === sel; return `
+      <g class="hole ${h.done ? 'done' : ''} ${h.current ? 'current' : ''} ${on ? 'on' : ''}" data-topic="${topic}" tabindex="0" role="button" aria-label="Hole ${h.n}: ${esc(h.title)}${h.topic ? ', general resources' : ''}${h.done ? ', complete' : h.current ? ', this week' : ''}">
+        <circle class="green" cx="${x}" cy="${y}" r="34" fill="url(#green)"/>
+        ${on ? `<circle class="ring" cx="${x}" cy="${y}" r="42"/>` : ''}
+        <circle cx="${x + 6}" cy="${y + 4}" r="4" fill="#1B2B1B" opacity=".75"/>
+        <line x1="${x + 6}" y1="${y + 4}" x2="${x + 6}" y2="${y - 42}" stroke="#F4F1E8" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="pennant" d="M ${x + 7} ${y - 42} L ${x + 34} ${y - 34} L ${x + 7} ${y - 26} Z"/>
+        <g class="badge" transform="translate(${x - 22} ${y + 22})"><circle r="15"/><text y="5" text-anchor="middle">${h.done ? '✓' : h.n}</text></g>
+        ${h.current ? `<g class="ball" transform="translate(${x - 30} ${y - 18})"><circle r="7" fill="#fff" stroke="#C9C9C9"/><circle cx="-2" cy="-2" r="1" fill="#C9C9C9"/><circle cx="2" cy="1" r="1" fill="#C9C9C9"/></g>` : ''}
+        <text class="label" x="${x}" y="${y + 58}" text-anchor="middle">${esc(h.title)}</text>
+      </g>`; }).join('')}
+  </svg></div>`;
+}
+
 function vClasswork() {
   setTitle('Classwork');
-  const wk = currentWeek();
-  const topics = [...[1, 2, 3, 4, 5, 6, 7, 8].map(n => ({ key: String(n), n, name: `Week ${n}`, sub: [`Hole ${n}`, S.program.weeks[n - 1]?.title, rangeText(n)].filter(Boolean).join(' · ') })),
-    { key: '0', n: 0, name: 'General resources', sub: 'For every week' }];
-  const shown = cwTopic === 'all' ? topics : topics.filter(t => t.key === cwTopic);
-  const asgRow = d => {
+  const wk = currentWeek() || 1;
+  const sel = cwTopic || String(wk);
+  const pledgeView = role() === 'pledge';
+  const shot = d => {
     let right;
-    if (role() === 'pledge') { const st = statusOf(d, meUid()); right = `${pill(st)}`; }
-    else { const ps = pledges(); const turned = ps.filter(p => subFor(d.id, p.uid)).length; right = `<span class="cw-count"><b>${turned}</b> turned in · <b>${ps.length - turned}</b> assigned</span>`; }
+    if (pledgeView) right = pill(statusOf(d, meUid()));
+    else { const ps = pledges(); const turned = ps.filter(p => subFor(d.id, p.uid)).length; right = `<span class="cw-count"><b>${turned}</b>/${ps.length} turned in</span>`; }
     return `<div class="cw-item" data-open-d="${d.id}"><span class="cw-icon asg">${I.list}</span>
       <div class="grow"><b>${esc(d.name)}</b><span>${d.dueAt ? `Due ${fmtDue(d.dueAt)}` : 'No due date'}</span></div>${right}
       ${canEdit() ? `<button class="icon-btn" data-edit-d="${d.id}" title="Edit">${I.edit}</button>` : ''}</div>`;
   };
-  const matRow = r => `<div class="cw-item" data-mat="${r.id}"><span class="cw-icon mat">${I.book}</span>
-      <div class="grow"><b>${esc(r.title)}</b><span>${r.path ? (isPdfPath(r.path) ? 'PDF' : 'File') : 'Link'}${r.description ? ` · ${esc(r.description)}` : ''}</span></div>
-      <span class="cw-kind">Material</span>
-      ${canEdit() ? `<button class="icon-btn" data-edit-r="${r.id}" title="Edit">${I.edit}</button>` : ''}</div>`;
-  view(`
-    <div class="cw">
-      <nav class="cw-topics" aria-label="Topics">
-        ${canEdit() ? `<div class="create-wrap"><button class="btn primary" id="cwCreate">${I.plus}Create</button>
-          <div class="create-menu" id="cwMenu" hidden><button data-make="asg">${I.list}Assignment</button><button data-make="mat">${I.book}Material</button><button data-make="ann">${I.megaphone}Announcement</button></div></div>` : ''}
-        <button class="${cwTopic === 'all' ? 'on' : ''}" data-topic="all">All topics</button>
-        ${topics.map(t => `<button class="${cwTopic === t.key ? 'on' : ''}" data-topic="${t.key}">${t.name}${t.n && t.n === wk ? ' <span class="flag"></span>' : ''}</button>`).join('')}
-      </nav>
-      <div class="cw-main">
-        ${shown.map(t => { const asg = t.n ? weekDelivs(t.n) : []; const mats = S.resources.filter(r => (r.week || 0) === t.n);
-          return `<section class="cw-topic"><div class="cw-head"><h2>${t.name}${t.n && t.n === wk ? ' <span class="now-chip"><span class="flag"></span>This week</span>' : ''}</h2><span>${esc(t.sub)}</span>
-            ${t.n ? `<a class="cw-week-link" href="#/week/${t.n}">Open week</a>` : ''}</div>
-            ${asg.length || mats.length ? asg.map(asgRow).join('') + mats.map(matRow).join('') : `<p class="cw-empty">Nothing posted yet.</p>`}</section>`; }).join('')}
+  const note = r => `<button type="button" class="yardage" data-mat="${r.id}">
+      <span class="yd-icon">${I.book}</span><span class="grow"><b>${esc(r.title)}</b><span>${r.path ? (isPdfPath(r.path) ? 'PDF' : 'File') : 'Link'}${r.description ? ` · ${esc(r.description)}` : ''}</span></span>
+      <span class="yd-open">Open</span>${canEdit() ? `<span class="icon-btn" data-edit-r="${r.id}" title="Edit" role="button">${I.edit}</span>` : ''}</button>`;
+  const createBtn = canEdit() ? `<div class="create-wrap"><button class="btn primary sm" id="cwCreate">${I.plus}Create</button>
+      <div class="create-menu" id="cwMenu" hidden><button data-make="asg">${I.list}Assignment</button><button data-make="mat">${I.book}Material</button><button data-make="ann">${I.megaphone}Announcement</button></div></div>` : '';
+
+  let panel;
+  if (sel === '0') {
+    const mats = S.resources.filter(r => !r.week);
+    panel = `<section class="hole-card">
+      <header class="hc-head"><div><p class="eyebrow">Hole 9 · The clubhouse</p><h2>General resources</h2><p class="hc-sub">Handbooks and guides for every week of the program.</p></div>${createBtn}</header>
+      <div class="hc-body one"><div><h3 class="hc-label">${I.book}Course notes</h3>${mats.length ? `<div class="yardages">${mats.map(note).join('')}</div>` : '<p class="cw-empty">Nothing posted yet.</p>'}</div></div>
+      <footer class="hc-foot"><button class="btn sm" data-topic="8">${I.left}Hole 8</button><span class="grow"></span></footer>
+    </section>`;
+  } else {
+    const n = +sel, W = S.program.weeks[n - 1] || {};
+    const asg = weekDelivs(n), mats = S.resources.filter(r => r.week === n);
+    const holed = pledgeView ? asg.filter(d => statusOf(d, meUid()).key === 'approved').length : null;
+    const cls = !pledgeView && asg.length ? classProgress(asg).pct : null;
+    const scoreLine = pledgeView
+      ? (asg.length ? `${holed} of ${asg.length} holed out` : 'No shots to play')
+      : (asg.length ? `${cls}% of the class holed out` : 'No deliverables yet');
+    panel = `<section class="hole-card">
+      <header class="hc-head">
+        <div><p class="eyebrow">Hole ${n}${n === currentWeek() ? ' · You are here' : ''}${rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>
+          <h2>${esc(W.title || `Week ${n}`)}</h2>${W.hole ? `<p class="hc-sub">${esc(W.hole)}</p>` : ''}</div>
+        <div class="scorecard" aria-label="Scorecard">
+          <div><span>Hole</span><b>${n}</b></div><div><span>Par</span><b>${asg.length}</b></div>
+          <div><span>${pledgeView ? 'Score' : 'Class'}</span><b>${pledgeView ? holed : `${cls ?? 0}%`}</b></div>
+        </div>
+      </header>
+      ${W.summary ? `<p class="caddie-tip"><span class="flag"></span><b>Caddie's tip</b>${esc(W.summary)}</p>` : ''}
+      <div class="hc-body">
+        <div><h3 class="hc-label">${I.book}Course notes<small>Read before you play</small></h3>
+          ${mats.length ? `<div class="yardages">${mats.map(note).join('')}</div>` : '<p class="cw-empty">No materials for this hole.</p>'}</div>
+        <div><h3 class="hc-label">${I.list}Your shots<small>${scoreLine}</small></h3>
+          ${asg.length ? asg.map(shot).join('') : '<p class="cw-empty">Nothing assigned for this hole yet.</p>'}</div>
       </div>
-    </div>`);
-  $$('[data-topic]').forEach(b => b.onclick = () => { cwTopic = b.dataset.topic; vClasswork(); });
+      <footer class="hc-foot">
+        ${n > 1 ? `<button class="btn sm" data-topic="${n - 1}">${I.left}Hole ${n - 1}</button>` : '<span></span>'}
+        <span class="grow"></span>${createBtn}<a class="btn sm" href="#/week/${n}">Week details</a>
+        ${`<button class="btn sm primary" data-topic="${n < 8 ? n + 1 : 0}">Hole ${n + 1}${n === 8 ? ' · Clubhouse' : ''}${I.right}</button>`}
+      </footer>
+    </section>`;
+  }
+
+  view(`
+    <div class="course-intro"><p>Nine holes: one for each week, and the clubhouse at the end for general resources. Pick a hole to see its course notes and the shots you need to play.</p></div>
+    ${courseMap(sel)}
+    ${panel}`);
+
+  /* Keep the selected hole in view on narrow screens, where the course scrolls sideways */
+  const wrap = $('.course-wrap'), on = $('.hole.on');
+  if (wrap && on && wrap.scrollWidth > wrap.clientWidth) {
+    const x = COURSE[sel === '0' ? 8 : +sel - 1]?.[0] ?? 0;
+    wrap.scrollLeft = x / 1200 * wrap.scrollWidth - wrap.clientWidth / 2;
+  }
+  const pick = t => { cwTopic = t; vClasswork(); $('.hole-card')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' }); };
+  $$('[data-topic]').forEach(b => {
+    b.onclick = () => pick(b.dataset.topic);
+    b.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(b.dataset.topic); } };
+  });
   const menu = $('#cwMenu');
   $('#cwCreate')?.addEventListener('click', e => { e.stopPropagation(); menu.hidden = !menu.hidden; });
   document.addEventListener('click', () => menu && (menu.hidden = true), { once: true });
   $('#view').onclick = e => {
     const mk = e.target.closest('[data-make]');
-    if (mk) { menu.hidden = true; const w = cwTopic !== 'all' && cwTopic !== '0' ? +cwTopic : (wk || 1);
-      if (mk.dataset.make === 'asg') return deliverableModal(null, w);
-      if (mk.dataset.make === 'mat') return resourceModal(null, cwTopic === 'all' ? (wk || 0) : +cwTopic);
+    if (mk) { menu.hidden = true; const w = sel === '0' ? 0 : +sel;
+      if (mk.dataset.make === 'asg') return deliverableModal(null, w || wk);
+      if (mk.dataset.make === 'mat') return resourceModal(null, w);
       return announcementModal(null); }
-    const er = e.target.closest('[data-edit-r]'); if (er) return resourceModal(S.resources.find(r => r.id === er.dataset.editR));
-    const m = e.target.closest('[data-mat]'); if (m && !e.target.closest('[data-edit-r]')) return materialDrawer(S.resources.find(r => r.id === m.dataset.mat));
+    const er = e.target.closest('[data-edit-r]'); if (er) { e.stopPropagation(); return resourceModal(S.resources.find(r => r.id === er.dataset.editR)); }
+    const m = e.target.closest('[data-mat]'); if (m) return materialDrawer(S.resources.find(r => r.id === m.dataset.mat));
   };
 }
 
