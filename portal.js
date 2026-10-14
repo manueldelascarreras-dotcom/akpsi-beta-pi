@@ -772,142 +772,49 @@ function vStream() {
 /* ── Classwork ── */
 let cwTopic = '';   // '' = this week's hole, '1'–'8' = a hole, '0' = hole 9 / the clubhouse (general resources)
 
-/* Beta Pi National: a 9-hole, par-36 course drawn in a 1000 × 760 viewBox.
- * Holes 1–8 are the weeks; hole 9 finishes at the clubhouse and holds the general resources. */
+/* Beta Pi National: a 9-hole, par-36 course on an aerial photo (images/portal/course.jpg).
+ * Holes 1–8 are the weeks; hole 9 finishes by the clubhouse and holds the general resources.
+ * at = the flag on each green, as % of the photo's width and height. */
 const HOLES = [
-  { par: 4, yds: 385, hcp: 3, tee: [250, 190], ctrl: [400, 155], green: [560, 268], side: 1, note: 'Gentle dogleg right to a two-tier green.' },
-  { par: 3, yds: 165, hcp: 9, tee: [602, 345], green: [632, 545], side: 1, note: 'Short iron to a green guarded by two bunkers.' },
-  { par: 5, yds: 520, hcp: 1, tee: [718, 610], ctrl: [680, 360], green: [758, 148], side: 1, note: 'The toughest hole: three shots with water down the right.' },
-  { par: 4, yds: 410, hcp: 5, tee: [852, 128], ctrl: [905, 330], green: [872, 520], side: 1, note: 'Tree-lined and long. The pond waits left of the landing zone.' },
-  { par: 3, yds: 175, hcp: 8, tee: [905, 640], green: [765, 676], side: -1, note: 'Downhill par 3. Take one less club.' },
-  { par: 5, yds: 535, hcp: 2, tee: [660, 705], ctrl: [520, 725], green: [378, 662], side: 1, note: 'The longest walk on the course, home along the south edge.' },
-  { par: 4, yds: 395, hcp: 4, tee: [252, 655], green: [222, 468], side: 1, note: 'Straightaway par 4 back toward the clubhouse.' },
-  { par: 4, yds: 370, hcp: 6, tee: [335, 600], ctrl: [318, 452], green: [400, 335], side: -1, note: 'Narrow fairway. Trees punish anything left.' },
-  { par: 4, yds: 350, hcp: 7, tee: [485, 612], ctrl: [505, 480], green: [478, 362], side: -1, note: 'The finishing hole, uphill to the clubhouse.' },
+  { par: 4, yds: 385, hcp: 3, at: [14.9, 9.1], note: 'Opening par 4 along the tree line. Favor the left side; sand guards the right.' },
+  { par: 3, yds: 165, hcp: 9, at: [52.1, 12.9], note: 'Short iron to a wide green. The easiest hole on the card.' },
+  { par: 5, yds: 520, hcp: 1, at: [82.1, 18.5], note: 'The toughest hole: three shots with water down the right.' },
+  { par: 4, yds: 410, hcp: 5, at: [38.4, 30.6], note: 'An island green ringed by water. Commit to the club.' },
+  { par: 3, yds: 175, hcp: 8, at: [79.4, 36.4], note: 'Over the lake to a green with bunkers front and right.' },
+  { par: 5, yds: 535, hcp: 2, at: [12.7, 41.9], note: 'The longest walk on the course. Lay up short of the creek.' },
+  { par: 4, yds: 395, hcp: 4, at: [33.2, 56.9], note: 'Water left, bunkers right. Accuracy over distance.' },
+  { par: 4, yds: 370, hcp: 6, at: [62.1, 63.9], note: 'A gentle dogleg around the lake toward the clubhouse.' },
+  { par: 4, yds: 350, hcp: 7, at: [70.7, 78.5], note: 'The finishing hole, in full view of the clubhouse.' },
 ];
 const COURSE_PAR = HOLES.reduce((a, h) => a + h.par, 0);
 const COURSE_YDS = HOLES.reduce((a, h) => a + h.yds, 0);
-const BOUNDARY = [[62, 300], [112, 168], [232, 108], [420, 92], [600, 135], [700, 108], [780, 48], [905, 46], [962, 128], [972, 420], [955, 640], [875, 728], [600, 742], [330, 732], [205, 698], [148, 610], [88, 522], [55, 420]];
-const PONDS = [[824, 430, 23, 58], [662, 205, 30, 24]];
-const CLUBHOUSE = [150, 322];
+const CLUBHOUSE_AT = [92.1, 70.3];
 
-const holePt = (h, t) => {
-  const [a, b, c] = [h.tee, h.ctrl || [(h.tee[0] + h.green[0]) / 2, (h.tee[1] + h.green[1]) / 2], h.green];
-  const u = 1 - t;
-  return [u * u * a[0] + 2 * u * t * b[0] + t * t * c[0], u * u * a[1] + 2 * u * t * b[1] + t * t * c[1]];
-};
-const holeD = h => h.ctrl ? `M ${h.tee} Q ${h.ctrl} ${h.green}` : `M ${h.tee} L ${h.green}`;
-const fairwayW = h => h.par === 3 ? 34 : h.par === 4 ? 50 : 56;
-/* Closed smooth path through the boundary points (Catmull-Rom → Bézier) */
-function smoothClosed(pts) {
-  let d = `M ${pts[0]}`;
-  for (let i = 0; i < pts.length; i++) {
-    const p0 = pts[(i - 1 + pts.length) % pts.length], p1 = pts[i], p2 = pts[(i + 1) % pts.length], p3 = pts[(i + 2) % pts.length];
-    d += ` C ${p1[0] + (p2[0] - p0[0]) / 6} ${p1[1] + (p2[1] - p0[1]) / 6}, ${p2[0] - (p3[0] - p1[0]) / 6} ${p2[1] - (p3[1] - p1[1]) / 6}, ${p2[0]} ${p2[1]}`;
-  }
-  return d + ' Z';
-}
-function inPoly(x, y, poly) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i], [xj, yj] = poly[j];
-    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
-
-/* Static course art, built once: rough, holes, bunkers, water, trees, clubhouse */
-let courseArt = '';
-function buildCourseArt() {
-  if (courseArt) return courseArt;
-  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const samples = HOLES.map(h => Array.from({ length: 24 }, (_, i) => holePt(h, i / 23)));
-  const clearOf = (x, y) => HOLES.every((h, k) => samples[k].every(([px, py]) => Math.hypot(px - x, py - y) > fairwayW(h) / 2 + 20))
-    && HOLES.every(h => Math.hypot(h.green[0] - x, h.green[1] - y) > 52 && Math.hypot(h.tee[0] - x, h.tee[1] - y) > 30)
-    && PONDS.every(([px, py, rx, ry]) => ((x - px) / (rx + 14)) ** 2 + ((y - py) / (ry + 14)) ** 2 > 1)
-    && Math.hypot(x - CLUBHOUSE[0], y - CLUBHOUSE[1]) > 95 && Math.hypot(x - 232, y - 400) > 40 && Math.hypot(x - 105, y - 470) > 34;
-  const clump = (x, y) => Math.sin(x / 41) + Math.cos(y / 37) + Math.sin((x + y) / 53) * .8;
-  const trees = [];
-  for (let y = 70; y < 740; y += 17) for (let x = 60; x < 975; x += 17) {
-    const jx = x + (rnd() - .5) * 14, jy = y + (rnd() - .5) * 14;
-    if (!inPoly(jx, jy, BOUNDARY) || !clearOf(jx, jy)) continue;
-    if (clump(jx, jy) < -.15 && rnd() > .25) continue;
-    trees.push([jx, jy, 7 + rnd() * 5, rnd()]);
-  }
-  trees.sort((a, b) => a[1] - b[1]);
-  const treeSvg = trees.map(([x, y, r, k]) => { const c = k < .33 ? '#2C5E2B' : k < .66 ? '#336B30' : '#3B7735';
-    return `<circle cx="${(x + 3).toFixed(1)}" cy="${(y + 4).toFixed(1)}" r="${r.toFixed(1)}" fill="#163916" opacity=".35"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${c}"/><circle cx="${(x - r * .3).toFixed(1)}" cy="${(y - r * .35).toFixed(1)}" r="${(r * .45).toFixed(1)}" fill="#4C8B42" opacity=".7"/>`; }).join('');
-  const bunker = (x, y, rx, ry, rot) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${rot} ${x} ${y})" fill="#EADCB0" stroke="#CDBB86" stroke-width="1.5"/>`;
-  const holesSvg = HOLES.map((h, i) => {
-    const [gx, gy] = h.green, [tx, ty] = h.tee;
-    const ang = Math.atan2(gy - ty, gx - tx) * 180 / Math.PI;
-    const [ex, ey] = holePt(h, .92), nx = -(gy - ey), ny = gx - ex, nl = Math.hypot(nx, ny) || 1;
-    const bx = gx + nx / nl * 34, by = gy + ny / nl * 34, bx2 = gx - nx / nl * 30 - (gx - ex) * .6, by2 = gy - ny / nl * 30 - (gy - ey) * .6;
-    return `<g class="hole-art">
-      <path d="${holeD(h)}" fill="none" stroke="#6FAE4E" stroke-width="${fairwayW(h) + 8}" stroke-linecap="round"/>
-      <path d="${holeD(h)}" fill="none" stroke="#86C25E" stroke-width="${fairwayW(h)}" stroke-linecap="round"/>
-      <path d="${holeD(h)}" fill="none" stroke="url(#stripes)" stroke-width="${fairwayW(h)}" stroke-linecap="round"/>
-      <rect x="${tx - 13}" y="${ty - 8}" width="26" height="16" rx="5" transform="rotate(${ang} ${tx} ${ty})" fill="#A3D57E" stroke="#7DB45A"/>
-      ${bunker(bx.toFixed(0), by.toFixed(0), 14, 8, ang)}${h.par !== 4 || i % 2 ? bunker(bx2.toFixed(0), by2.toFixed(0), 11, 7, ang + 40) : ''}
-      <ellipse cx="${gx}" cy="${gy}" rx="35" ry="29" fill="#8FCB69"/>
-      <ellipse cx="${gx}" cy="${gy}" rx="28" ry="23" fill="url(#greenGrad)"/>
-    </g>`;
-  }).join('');
-  courseArt = `
-    <defs>
-      <pattern id="stripes" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(28)"><rect width="11" height="22" fill="#fff" opacity=".09"/></pattern>
-      <radialGradient id="greenGrad" cx=".4" cy=".35"><stop offset="0" stop-color="#B9E596"/><stop offset="1" stop-color="#9AD777"/></radialGradient>
-      <radialGradient id="water" cx=".4" cy=".35"><stop offset="0" stop-color="#7CC0E6"/><stop offset="1" stop-color="#3D8DC0"/></radialGradient>
-      <linearGradient id="roof" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7E8C9E"/><stop offset="1" stop-color="#55657A"/></linearGradient>
-      <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 .1  0 0 0 0 0  0 0 0 .18 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
-      <filter id="lift" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0F2A1A" flood-opacity=".28"/></filter>
-      <clipPath id="courseClip"><path d="${smoothClosed(BOUNDARY)}"/></clipPath>
-    </defs>
-    <path d="${smoothClosed(BOUNDARY)}" fill="#4E8A3D" filter="url(#lift)"/>
-    <g clip-path="url(#courseClip)">
-      <rect width="1000" height="760" fill="#4E8A3D" filter="url(#grain)"/>
-      <path d="M 150 350 C 200 300, 230 240, 250 205 M 205 360 C 300 420, 420 610, 470 640 L 700 700 M 880 540 C 900 590, 905 610, 905 625" fill="none" stroke="#D9D6CC" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 0" opacity=".85"/>
-      ${PONDS.map(([x, y, rx, ry]) => `<ellipse cx="${x}" cy="${y}" rx="${rx + 4}" ry="${ry + 4}" fill="#6FA85A"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="url(#water)"/><path d="M ${x - rx * .5} ${y - ry * .3} q ${rx * .25} -6 ${rx * .5} 0" stroke="#fff" stroke-width="2" fill="none" opacity=".5"/>`).join('')}
-      ${holesSvg}
-      <ellipse cx="232" cy="400" rx="30" ry="22" fill="#9AD777" stroke="#7DB45A" stroke-width="2"/><circle cx="224" cy="396" r="2" fill="#173117"/><circle cx="240" cy="405" r="2" fill="#173117"/>
-      ${treeSvg}
-    </g>
-    <path d="${smoothClosed(BOUNDARY)}" fill="none" stroke="#3E7431" stroke-width="3"/>
-    <g class="compass" transform="translate(105 470)"><circle r="20" fill="#fff" opacity=".9"/><path d="M0 -16 L5 0 L0 16 L-5 0 Z" fill="#0F2A4A"/><path d="M0 -16 L5 0 L-5 0 Z" fill="#C0392B"/><text y="-24" text-anchor="middle">N</text></g>`;
-  return courseArt;
-}
-
-/* Interactive layer: hole hit areas, flags, numbers, clubhouse */
-function courseSVG(sel, { viewBox = '0 0 1000 760', interactive = true, focus = 0 } = {}) {
+function courseMap(sel) {
   const states = holeStates();
-  const layer = HOLES.map((h, i) => {
-    const n = i + 1, st = n <= 8 ? states[i] : { done: false, current: false, title: 'General resources' };
+  const pins = HOLES.map((h, i) => {
+    const n = i + 1, st = n <= 8 ? states[i] : { done: false, current: false };
     const topic = n === 9 ? '0' : String(n), on = topic === sel;
-    const [gx, gy] = h.green, [mx, my] = holePt(h, .5), [ax, ay] = holePt(h, .55);
-    const nx = -(ay - my), ny = ax - mx, nl = Math.hypot(nx, ny) || 1;
-    const bx = mx + nx / nl * (fairwayW(h) / 2 + 26) * h.side, by = my + ny / nl * (fairwayW(h) / 2 + 26) * h.side;
-    if (!interactive && focus !== n) return `<g class="hole ${on ? 'on' : ''}"><line x1="${gx + 4}" y1="${gy}" x2="${gx + 4}" y2="${gy - 34}" stroke="#F7F4EA" stroke-width="2"/><path d="M ${gx + 5} ${gy - 34} l 18 6 l -18 6 Z" fill="#E9EEF5"/></g>`;
-    return `<g class="hole ${st.done ? 'done' : ''} ${st.current ? 'current' : ''} ${on ? 'on' : ''}" ${interactive ? `data-topic="${topic}" tabindex="0" role="button" aria-label="Hole ${n}, par ${h.par}, ${h.yds} yards${n <= 8 ? `: Week ${n}, ${esc(st.title)}` : ': general resources'}${st.done ? ', complete' : st.current ? ', this week' : ''}"` : ''}>
-      ${interactive ? `<path class="hit" d="${holeD(h)}" stroke-width="${fairwayW(h) + 30}"/>` : ''}
-      ${on && interactive ? `<path class="sel" d="${holeD(h)}" stroke-width="${fairwayW(h) + 14}"/>` : ''}
-      <circle cx="${gx + 4}" cy="${gy + 2}" r="3.5" fill="#132A13"/>
-      <line x1="${gx + 4}" y1="${gy + 2}" x2="${gx + 4}" y2="${gy - 38}" stroke="#F7F4EA" stroke-width="2.4" stroke-linecap="round"/>
-      <path class="pennant" d="M ${gx + 5} ${gy - 38} l 24 8 l -24 8 Z"/>
-      ${st.current ? `<g class="ball"><circle cx="${gx - 12}" cy="${gy + 8}" r="5" fill="#fff" stroke="#BDBDBD"/></g>` : ''}
-      <g class="badge" transform="translate(${bx.toFixed(0)} ${by.toFixed(0)})"><circle r="19"/><text y="6" text-anchor="middle">${n}</text>${st.done ? '<g class="tick" transform="translate(13 -13)"><circle r="8"/><path d="M-3.5 0 l2.5 2.5 l4.5 -5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g>' : ''}</g>
-    </g>`;
+    return `<button type="button" class="pin ${st.done ? 'done' : ''} ${st.current ? 'current' : ''} ${on ? 'on' : ''} ${h.at[0] > 72 ? 'flip' : ''}"
+        style="left:${h.at[0]}%;top:${h.at[1]}%" data-topic="${topic}"
+        aria-label="Hole ${n}, par ${h.par}${n <= 8 ? `, Week ${n}: ${esc(st.title)}` : ', general resources'}${st.done ? ', complete' : st.current ? ', this week' : ''}">
+      <span class="pin-n">${st.done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : n}</span>
+      <span class="pin-t"><b>Hole ${n}</b><i>${n <= 8 ? (st.current ? 'This week' : `Week ${n}`) : 'Resources'}</i></span>
+    </button>`;
   }).join('');
-  const [cx, cy] = CLUBHOUSE;
-  const club = `<g class="clubhouse ${sel === '0' ? 'on' : ''}" ${interactive ? `data-topic="0" tabindex="0" role="button" aria-label="Clubhouse: general resources"` : ''}>
-      <rect x="${cx - 62}" y="${cy - 34}" width="124" height="74" rx="8" fill="#000" opacity=".22" transform="translate(5 7)"/>
-      <path d="M ${cx - 62} ${cy - 34} h 124 v 74 h -124 Z" fill="url(#roof)"/>
-      <path d="M ${cx - 62} ${cy - 34} L ${cx} ${cy + 3} L ${cx + 62} ${cy - 34} M ${cx - 62} ${cy + 40} L ${cx} ${cy + 3} L ${cx + 62} ${cy + 40}" stroke="#4A586B" stroke-width="1.5" fill="none"/>
-      <rect x="${cx - 46}" y="${cy - 18}" width="92" height="42" rx="6" fill="#0F2A4A" stroke="#C9A961" stroke-width="2"/>
-      <image href="images/crest.png" x="${cx - 42}" y="${cy - 15}" width="22" height="36"/>
-      <text x="${cx + 10}" y="${cy + 11}" text-anchor="middle" class="akpsi">ΑΚΨ</text>
-      <text x="${cx}" y="${cy + 64}" text-anchor="middle" class="club-label">Clubhouse</text>
-    </g>`;
-  return `<svg class="course${interactive ? '' : ' flyover'}" viewBox="${interactive ? '0 30 1000 725' : viewBox}" role="img" aria-label="${interactive ? 'Beta Pi National: a 9-hole golf course, one hole per week' : `Hole ${focus} layout`}">${buildCourseArt()}${club}${layer}</svg>`;
+  return `<div class="course-photo">
+    <img src="images/portal/course.jpg" srcset="images/portal/course-sm.jpg 900w, images/portal/course.jpg 1700w" sizes="(max-width: 860px) 100vw, 1100px"
+      width="1700" height="1269" alt="Aerial view of Beta Pi National: nine golf holes among lakes and pines, with the ΑΚΨ clubhouse at the lower right">
+    ${pins}
+    <button type="button" class="pin club ${sel === '0' ? 'on' : ''}" style="left:${CLUBHOUSE_AT[0]}%;top:${CLUBHOUSE_AT[1]}%" data-topic="0" aria-label="Clubhouse: general resources">
+      <span class="pin-t"><b>Clubhouse</b><i>General resources</i></span></button>
+  </div>`;
+}
+/* A zoomed crop of the photo centered on one hole */
+function flyover(n) {
+  const [x, y] = HOLES[n - 1].at, s = 3.2;
+  const pos = v => Math.min(100, Math.max(0, ((v / 100) * s - .5) / (s - 1) * 100)).toFixed(1);
+  return `<div class="hc-flyover" style="background-image:url('images/portal/course.jpg');background-size:${s * 100}% auto;background-position:${pos(x)}% ${pos(y + 4)}%" role="img" aria-label="Close-up of hole ${n}"><span class="hc-tag">Hole ${n} flyover</span></div>`;
 }
 
 /* A pledge's result on a hole, in golf terms */
@@ -924,14 +831,6 @@ function holeResult(n) {
   if (st.some(x => x.key === 'missing')) return { label: 'Bogey', tone: 'bogey' };
   return { label: 'In play', tone: '' };
 }
-const flyoverBox = n => {
-  const h = HOLES[n - 1], pts = [h.tee, h.green, ...(h.ctrl ? [holePt(h, .5)] : [])];
-  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
-  let x0 = Math.min(...xs) - 70, x1 = Math.max(...xs) + 70, y0 = Math.min(...ys) - 70, y1 = Math.max(...ys) + 60;
-  const w = Math.max(x1 - x0, (y1 - y0) * 1.3), hh = w / 1.3, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-  const vx = Math.min(Math.max(cx - w / 2, 0), 1000 - w), vy = Math.min(Math.max(cy - hh / 2, 0), 760 - hh);
-  return `${vx.toFixed(0)} ${vy.toFixed(0)} ${w.toFixed(0)} ${hh.toFixed(0)}`;
-};
 
 function vClasswork() {
   setTitle('Classwork');
@@ -963,7 +862,7 @@ function vClasswork() {
 
   const panel = `<section class="hole-card">
     <div class="hc-top">
-      <div class="hc-flyover">${courseSVG(sel, { viewBox: flyoverBox(n), interactive: false, focus: n })}<span class="hc-tag">Hole ${n} flyover</span></div>
+      ${flyover(n)}
       <div class="hc-info">
         <p class="eyebrow">Hole ${n}${n <= 8 ? ` · Week ${n}` : ' · The clubhouse'}${n === currentWeek() ? ' · You are here' : ''}${n <= 8 && rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>
         <h2>${n <= 8 ? esc(W.title || `Week ${n}`) : 'General resources'}</h2>
@@ -971,7 +870,7 @@ function vClasswork() {
         <table class="hole-score" aria-label="Scorecard"><tr>
           <th>Hole</th><th>Par</th><th>Yards</th><th>Hcp</th>${n <= 8 ? `<th>${pledgeView ? 'Shots' : 'Class'}</th>` : ''}${res ? '<th>Result</th>' : ''}</tr><tr>
           <td>${n}</td><td>${H.par}</td><td>${H.yds}</td><td>${H.hcp}</td>${n <= 8 ? `<td>${pledgeView ? `${holed}/${asg.length}` : `${cls ?? 0}%`}</td>` : ''}${res ? `<td class="res ${res.tone}">${res.label}</td>` : ''}</tr></table>
-        <p class="hc-note"><b>From the tips:</b> ${H.note} Navy tees, bentgrass green.</p>
+        <p class="hc-note"><b>From the tips:</b> ${H.note}</p>
       </div>
     </div>
     ${W.summary ? `<p class="caddie-tip"><span class="flag"></span><b>Caddie's tip</b>${esc(W.summary)}</p>` : ''}
@@ -991,7 +890,7 @@ function vClasswork() {
   view(`
     <div class="course-intro"><div><p class="eyebrow">Beta Pi National · Par ${COURSE_PAR} · ${COURSE_YDS.toLocaleString()} yards</p>
       <p>One hole per week, and hole 9 finishes at the clubhouse with the general resources. Pick a hole to see its course notes and the shots you need to play.</p></div></div>
-    <div class="course-wrap">${courseSVG(sel)}</div>
+    ${courseMap(sel)}
     ${panel}`);
 
   const pick = t => { cwTopic = t; vClasswork(); $('.hole-card')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' }); };
