@@ -848,8 +848,9 @@ function vClasswork() {
   const note = r => `<button type="button" class="yardage" data-mat="${r.id}">
       <span class="yd-icon">${I.book}</span><span class="grow"><b>${esc(r.title)}</b><span>${r.path ? (isPdfPath(r.path) ? 'PDF' : 'File') : 'Link'}${r.description ? ` · ${esc(r.description)}` : ''}</span></span>
       <span class="yd-open">Open</span>${canEdit() ? `<span class="icon-btn" data-edit-r="${r.id}" title="Edit" role="button">${I.edit}</span>` : ''}</button>`;
-  const createBtn = canEdit() ? `<div class="create-wrap"><button class="btn primary sm" id="cwCreate">${I.plus}Create</button>
-      <div class="create-menu" id="cwMenu" hidden><button data-make="asg">${I.list}Assignment</button><button data-make="mat">${I.book}Material</button><button data-make="ann">${I.megaphone}Announcement</button></div></div>` : '';
+  /* Create sits top-right on desktop and bottom-right on phones (CSS shows one or the other) */
+  const createBtn = where => canEdit() ? `<div class="create-wrap create-${where}"><button class="btn primary sm" data-create>${I.plus}Create</button>
+      <div class="create-menu" hidden><button data-make="asg">${I.list}Assignment</button><button data-make="mat">${I.book}Material</button><button data-make="ann">${I.megaphone}Announcement</button></div></div>` : '';
 
   const n = sel === '0' ? 9 : +sel, H = HOLES[n - 1];
   const W = n <= 8 ? (S.program.weeks[n - 1] || {}) : {};
@@ -865,7 +866,7 @@ function vClasswork() {
     <div class="hc-top">
       ${flyover(n)}
       <div class="hc-info">
-        <div class="hc-row"><p class="eyebrow">Hole ${n}${n <= 8 ? ` · Week ${n}` : ' · The clubhouse'}${n === currentWeek() ? ' · You are here' : ''}${n <= 8 && rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>${createBtn}</div>
+        <div class="hc-row"><p class="eyebrow">Hole ${n}${n <= 8 ? ` · Week ${n}` : ' · The clubhouse'}${n === currentWeek() ? ' · You are here' : ''}${n <= 8 && rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>${createBtn('top')}</div>
         <h2>${n <= 8 ? esc(W.title || `Week ${n}`) : 'General resources'}</h2>
         <p class="hc-sub">${n <= 8 && W.hole ? esc(W.hole) : n > 8 ? 'Handbooks and guides for every week of the program.' : ''}</p>
         <table class="hole-score" aria-label="Scorecard"><tr>
@@ -885,6 +886,7 @@ function vClasswork() {
       ${n > 1 ? `<button class="btn sm" data-topic="${n - 1}">${I.left}Hole ${n - 1}</button>` : '<span></span>'}
       <span class="grow"></span>${n <= 8 ? `<a class="btn sm" href="#/week/${n}">Week details</a>` : ''}
       ${n < 9 ? `<button class="btn sm primary" data-topic="${n < 8 ? n + 1 : 0}">Hole ${n + 1}${I.right}</button>` : ''}
+      ${createBtn('bottom')}
     </footer>
   </section>`;
 
@@ -912,12 +914,12 @@ function vClasswork() {
       toast(`${list.length === 1 ? 'PDF' : `${list.length} files`} added to ${week ? `hole ${week}` : 'the clubhouse'}.`); route();
     } catch (y) { toast(y.message, true); }
   });
-  const menu = $('#cwMenu');
-  $('#cwCreate')?.addEventListener('click', e => { e.stopPropagation(); menu.hidden = !menu.hidden; });
-  document.addEventListener('click', () => menu && (menu.hidden = true), { once: true });
+  const menus = $$('.hole-panel .create-menu');
+  $$('[data-create]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const m = b.nextElementSibling; const open = m.hidden; menus.forEach(x => { x.hidden = true; }); m.hidden = !open; }));
+  document.addEventListener('click', () => menus.forEach(x => { x.hidden = true; }), { once: true });
   $('#view').onclick = e => {
     const mk = e.target.closest('[data-make]');
-    if (mk) { menu.hidden = true; const w = n <= 8 ? n : 0;
+    if (mk) { menus.forEach(x => { x.hidden = true; }); const w = n <= 8 ? n : 0;
       if (mk.dataset.make === 'asg') return deliverableModal(null, w || wk);
       if (mk.dataset.make === 'mat') return resourceModal(null, w);
       return announcementModal(null); }

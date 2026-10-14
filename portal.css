@@ -1131,3 +1131,12 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 .hc-row .create-menu { left: auto; right: 0; }
 .hc-label small .up-pdf { text-transform: none; letter-spacing: 0; font-size: .8rem; cursor: pointer; }
 .hc-label small .up-pdf svg { width: 14px; height: 14px; color: var(--brand-ink); }
+.hc-foot .create-wrap { margin: 0; }
+.hc-foot .create-menu { top: auto; bottom: calc(100% + 6px); left: auto; right: 0; }
+.create-bottom { display: none; }
+@media (max-width: 860px) {
+  .create-top { display: none; }
+  .create-bottom { display: block; width: auto; margin-left: auto !important; }
+  .hc-foot { row-gap: 10px; }
+  .hc-foot .create-bottom .btn { min-height: 44px; padding: 10px 22px; }
+}
