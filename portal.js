@@ -860,11 +860,12 @@ function vClasswork() {
   const res = pledgeView && n <= 8 ? holeResult(n) : null;
   const scoreLine = n > 8 ? '' : pledgeView ? (asg.length ? `${holed} of ${asg.length} holed out` : 'No shots to play') : (asg.length ? `${cls}% of the class holed out` : 'No deliverables yet');
 
-  const panel = `<section class="hole-card">
+  const upBtn = canEdit() ? `<label class="btn sm up-pdf">${I.upload}Upload PDFs<input type="file" id="cwUpload" accept=".pdf,.png,.jpg,.jpeg,.docx,.pptx" multiple hidden></label>` : '';
+  const panel = `<section class="hole-panel">
     <div class="hc-top">
       ${flyover(n)}
       <div class="hc-info">
-        <p class="eyebrow">Hole ${n}${n <= 8 ? ` · Week ${n}` : ' · The clubhouse'}${n === currentWeek() ? ' · You are here' : ''}${n <= 8 && rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>
+        <div class="hc-row"><p class="eyebrow">Hole ${n}${n <= 8 ? ` · Week ${n}` : ' · The clubhouse'}${n === currentWeek() ? ' · You are here' : ''}${n <= 8 && rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>${createBtn}</div>
         <h2>${n <= 8 ? esc(W.title || `Week ${n}`) : 'General resources'}</h2>
         <p class="hc-sub">${n <= 8 && W.hole ? esc(W.hole) : n > 8 ? 'Handbooks and guides for every week of the program.' : ''}</p>
         <table class="hole-score" aria-label="Scorecard"><tr>
@@ -875,14 +876,14 @@ function vClasswork() {
     </div>
     ${W.summary ? `<p class="caddie-tip"><span class="flag"></span><b>Caddie's tip</b>${esc(W.summary)}</p>` : ''}
     <div class="hc-body${n > 8 ? ' one' : ''}">
-      <div><h3 class="hc-label">${I.book}Course notes<small>Read before you play</small></h3>
+      <div><h3 class="hc-label">${I.book}Course notes<small>${canEdit() ? upBtn : 'Read before you play'}</small></h3>
         ${mats.length ? `<div class="yardages">${mats.map(note).join('')}</div>` : '<p class="cw-empty">No materials for this hole.</p>'}</div>
       ${n <= 8 ? `<div><h3 class="hc-label">${I.list}Your shots<small>${scoreLine}</small></h3>
         ${asg.length ? asg.map(shot).join('') : '<p class="cw-empty">Nothing assigned for this hole yet.</p>'}</div>` : ''}
     </div>
     <footer class="hc-foot">
       ${n > 1 ? `<button class="btn sm" data-topic="${n - 1}">${I.left}Hole ${n - 1}</button>` : '<span></span>'}
-      <span class="grow"></span>${createBtn}${n <= 8 ? `<a class="btn sm" href="#/week/${n}">Week details</a>` : ''}
+      <span class="grow"></span>${n <= 8 ? `<a class="btn sm" href="#/week/${n}">Week details</a>` : ''}
       ${n < 9 ? `<button class="btn sm primary" data-topic="${n < 8 ? n + 1 : 0}">Hole ${n + 1}${I.right}</button>` : ''}
     </footer>
   </section>`;
@@ -893,10 +894,23 @@ function vClasswork() {
     ${courseMap(sel)}
     ${panel}`);
 
-  const pick = t => { cwTopic = t; vClasswork(); $('.hole-card')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' }); };
+  const pick = t => { cwTopic = t; vClasswork(); $('.hole-panel')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' }); };
   $$('[data-topic]').forEach(b => {
     b.onclick = () => pick(b.dataset.topic);
     b.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(b.dataset.topic); } };
+  });
+  $('#cwUpload')?.addEventListener('change', async e => {
+    const list = [...e.target.files]; e.target.value = '';
+    if (!list.length) return;
+    const week = n <= 8 ? n : 0;
+    try {
+      for (const f of list) {
+        toast(`Uploading ${f.name}…`);
+        const u = await uploadResource(f);
+        await saveItem('resources', { title: f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' '), week, description: '', url: '', path: u.path, fileName: u.name });
+      }
+      toast(`${list.length === 1 ? 'PDF' : `${list.length} files`} added to ${week ? `hole ${week}` : 'the clubhouse'}.`); route();
+    } catch (y) { toast(y.message, true); }
   });
   const menu = $('#cwMenu');
   $('#cwCreate')?.addEventListener('click', e => { e.stopPropagation(); menu.hidden = !menu.hidden; });

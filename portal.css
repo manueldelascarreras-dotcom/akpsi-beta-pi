@@ -1038,7 +1038,7 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 .course-intro { margin-bottom: 14px; }
 .course-intro p:not(.eyebrow) { color: var(--mid); max-width: 72ch; margin-top: 4px; }
 
-.hole-card { margin-top: 22px; border: 1px solid var(--rule); border-radius: 20px; background: #fff; overflow: hidden; }
+.hole-panel { margin-top: 22px; border: 1px solid var(--rule); border-radius: 20px; background: #fff; overflow: hidden; }
 .hc-top { display: grid; grid-template-columns: minmax(240px, 380px) minmax(0, 1fr); gap: 26px; padding: 22px 26px; background: linear-gradient(180deg, #F5F9F2, #fff); border-bottom: 1px solid var(--rule-2); }
 .hc-flyover { position: relative; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 26px rgba(15,42,26,.18); align-self: start; }
 .hc-tag { position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 99px; background: rgba(15,30,54,.72); color: #fff; font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
@@ -1124,3 +1124,10 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
   .pin.club, .pin.club:hover { padding: 4px 8px; transform: translate(-88%, -110%); }
 }
 @media (prefers-reduced-motion: reduce) { .pin.current .pin-n { animation: none; } .pin { transition: none; } }
+.hc-row { display: flex; align-items: center; gap: 12px; }
+.hc-row .eyebrow { flex: 1; }
+.hc-row .create-wrap { margin: 0; }
+.hc-row .create-wrap .btn { min-height: 38px; padding: 8px 18px; }
+.hc-row .create-menu { left: auto; right: 0; }
+.hc-label small .up-pdf { text-transform: none; letter-spacing: 0; font-size: .8rem; cursor: pointer; }
+.hc-label small .up-pdf svg { width: 14px; height: 14px; color: var(--brand-ink); }
