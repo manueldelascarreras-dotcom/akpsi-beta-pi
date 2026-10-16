@@ -1145,7 +1145,7 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 @media (max-width: 860px) { .course-photo { width: 100%; } }
 
 /* ─── Theme switch (bottom of the page) ─── */
-.ptheme-switch { position: fixed; z-index: 40; bottom: 18px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 99px;
+.ptheme-switch { position: relative; width: max-content; margin: 28px auto 18px; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 99px;
   background: rgba(10, 29, 53, .82); -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 12px 30px rgba(10,29,53,.28); }
 .ptheme-switch::before { content: ""; position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 99px; background: linear-gradient(90deg, #1F7A4D, #2E9A5E); transform: translateX(100%); transition: transform .35s cubic-bezier(.32,.72,0,1), background .35s; }
 :root[data-ptheme="pro"] .ptheme-switch::before { transform: translateX(0); background: #fff; }
@@ -1153,8 +1153,6 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 .ptheme-switch button[aria-pressed="true"] { color: #fff; }
 :root[data-ptheme="pro"] .ptheme-switch button[aria-pressed="true"] { color: var(--brand-deep); }
 .ptheme-switch button:focus-visible { outline: 2px solid #F2C14E; outline-offset: 2px; }
-@media (min-width: 861px) { .app:not([hidden]) ~ .ptheme-switch { left: calc(50% + 118px); } }
-.main, .view { padding-bottom: 84px; }
 @media (prefers-reduced-motion: reduce) { .ptheme-switch::before { transition: none; } }
 
 /* ─── Professional theme ─── */
@@ -1182,3 +1180,5 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 .wt.on .wt-bar { background: rgba(255,255,255,.25); }
 .wt.on .wt-bar i { background: #fff; }
 .wt.res b { min-height: 0; }
+
+.ptheme-switch.in-app { margin: 8px auto 28px; }

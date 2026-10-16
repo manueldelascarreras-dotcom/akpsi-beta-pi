@@ -516,18 +516,25 @@ function applyTheme() {
   document.documentElement.dataset.ptheme = ptheme;
   $$('.ptheme-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pt === ptheme)));
 }
-(function mountThemeSwitch() {
-  const sw = document.createElement('div');
-  sw.className = 'ptheme-switch'; sw.setAttribute('role', 'group'); sw.setAttribute('aria-label', 'Site theme');
-  sw.innerHTML = '<button type="button" data-pt="pro">Professional</button><button type="button" data-pt="golf">Golf</button>';
-  sw.addEventListener('click', e => {
-    const b = e.target.closest('[data-pt]'); if (!b || b.dataset.pt === ptheme) return;
-    ptheme = b.dataset.pt;
-    try { localStorage.setItem('bp-portal-theme', ptheme); } catch {}
-    applyTheme();
-    if (!$('#app').hidden && S.me) { renderShell(); route(); }
-  });
-  document.body.appendChild(sw);
+/* One switch sits above the footer on the sign-in screen, another at the end of every portal page.
+ * Both are in the page flow, so they never cover content. */
+(function mountThemeSwitches() {
+  const make = () => {
+    const sw = document.createElement('div');
+    sw.className = 'ptheme-switch'; sw.setAttribute('role', 'group'); sw.setAttribute('aria-label', 'Site theme');
+    sw.innerHTML = '<button type="button" data-pt="pro">Professional</button><button type="button" data-pt="golf">Golf</button>';
+    sw.addEventListener('click', e => {
+      const b = e.target.closest('[data-pt]'); if (!b || b.dataset.pt === ptheme) return;
+      ptheme = b.dataset.pt;
+      try { localStorage.setItem('bp-portal-theme', ptheme); } catch {}
+      applyTheme();
+      if (!$('#app').hidden && S.me) { renderShell(); route(); }
+    });
+    return sw;
+  };
+  const foot = $('#auth .auth-foot');
+  if (foot) foot.before(make());
+  $('#app .main')?.append(Object.assign(make(), { className: 'ptheme-switch in-app' }));
   applyTheme();
 })();
 
