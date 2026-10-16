@@ -1182,3 +1182,5 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 .wt.res b { min-height: 0; }
 
 .ptheme-switch.in-app { margin: 8px auto 28px; }
+.auth-body { align-content: center; }
+.ptheme-switch.in-auth { margin: 22px auto 0; }

@@ -516,7 +516,7 @@ function applyTheme() {
   document.documentElement.dataset.ptheme = ptheme;
   $$('.ptheme-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pt === ptheme)));
 }
-/* One switch sits above the footer on the sign-in screen, another at the end of every portal page.
+/* One switch sits right under the sign-in card, another at the end of every portal page.
  * Both are in the page flow, so they never cover content. */
 (function mountThemeSwitches() {
   const make = () => {
@@ -532,8 +532,7 @@ function applyTheme() {
     });
     return sw;
   };
-  const foot = $('#auth .auth-foot');
-  if (foot) foot.before(make());
+  $('#authBody')?.after(Object.assign(make(), { className: 'ptheme-switch in-auth' }));
   $('#app .main')?.append(Object.assign(make(), { className: 'ptheme-switch in-app' }));
   applyTheme();
 })();

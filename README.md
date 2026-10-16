@@ -108,4 +108,4 @@ Uploads through the live CMS are limited to 30 MB each. For the About video, pas
 
 The site has two themes, Professional (dark marine blue, the default) and Miami Vice (neon pink and teal). Visitors switch with the toggle at the bottom of the home hero or in the footer. Theme colors are the CSS variables at the top of `styles.css`.
 
-The pledge portal has its own switch, above the footer on the sign-in screen and at the end of every portal page: **Golf** (the default: course photo, holes, Caddie Notes) and **Professional** (navy, sans-serif headings, week tiles, plain wording). The choice is saved per browser (`bp-portal-theme`). Colors live in `portal.css` under `:root[data-ptheme="pro"]`; wording swaps use `G(golfWord, proWord)` in `portal.js`.
+The pledge portal has its own switch, right under the sign-in card and at the end of every portal page: **Golf** (the default: course photo, holes, Caddie Notes) and **Professional** (navy, sans-serif headings, week tiles, plain wording). The choice is saved per browser (`bp-portal-theme`). Colors live in `portal.css` under `:root[data-ptheme="pro"]`; wording swaps use `G(golfWord, proWord)` in `portal.js`.
