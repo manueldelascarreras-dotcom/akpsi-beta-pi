@@ -238,7 +238,7 @@ function currentWeek() {
   const days = Math.floor((Date.now() - Date.parse(S.program.startDate + 'T00:00')) / DAY);
   return days < 0 ? 0 : Math.min(8, Math.floor(days / 7) + 1);
 }
-const weekLabel = n => `Week ${n} · Hole ${n}`;
+const weekLabel = n => golf() ? `Week ${n} · Hole ${n}` : `Week ${n}`;
 const weekDelivs = n => S.deliverables.filter(d => d.week === n);
 
 /* ───────────── API ───────────── */
@@ -508,6 +508,29 @@ async function load() {
 
 /* ───────────── shell + routing ───────────── */
 
+/* ───────────── Theme: Golf (default) or Professional, switched at the bottom of the page ───────────── */
+let ptheme = (() => { try { return localStorage.getItem('bp-portal-theme') === 'pro' ? 'pro' : 'golf'; } catch { return 'golf'; } })();
+const golf = () => ptheme === 'golf';
+const G = (golfWord, proWord) => golf() ? golfWord : proWord;   // pick the wording for the current theme
+function applyTheme() {
+  document.documentElement.dataset.ptheme = ptheme;
+  $$('.ptheme-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pt === ptheme)));
+}
+(function mountThemeSwitch() {
+  const sw = document.createElement('div');
+  sw.className = 'ptheme-switch'; sw.setAttribute('role', 'group'); sw.setAttribute('aria-label', 'Site theme');
+  sw.innerHTML = '<button type="button" data-pt="pro">Professional</button><button type="button" data-pt="golf">Golf</button>';
+  sw.addEventListener('click', e => {
+    const b = e.target.closest('[data-pt]'); if (!b || b.dataset.pt === ptheme) return;
+    ptheme = b.dataset.pt;
+    try { localStorage.setItem('bp-portal-theme', ptheme); } catch {}
+    applyTheme();
+    if (!$('#app').hidden && S.me) { renderShell(); route(); }
+  });
+  document.body.appendChild(sw);
+  applyTheme();
+})();
+
 const NAV = {
   pledge: [['home', 'Home', I.home], ['classwork', 'Classwork', I.list], ['feedback', 'Caddie Notes', I.megaphone], ['calendar', 'Calendar', I.cal], ['grades', 'Grades', I.flag], ['people', 'People', I.users]],
   educator: [['home', 'Home', I.home], ['classwork', 'Classwork', I.list], ['review', 'To review', I.inbox, 'queue'], ['pledges', 'My pledges', I.users], ['feedback', 'Caddie Notes', I.megaphone], ['grades', 'Grades & lateness', I.flag], ['calendar', 'Calendar', I.cal], ['people', 'People', I.users]],
@@ -522,7 +545,7 @@ function renderShell() {
   const q = reviewQueue().length;
   $('#sideNav').innerHTML = items.map(it => typeof it === 'string'
     ? `<div class="group">${it.slice(1)}</div>`
-    : `<a href="#/${it[0]}" data-nav="${it[0]}">${it[2]}<span>${it[1]}</span>${it[3] === 'queue' && q ? `<span class="count">${q}</span>` : ''}</a>`).join('');
+    : `<a href="#/${it[0]}" data-nav="${it[0]}">${it[2]}<span>${it[0] === 'feedback' ? G('Caddie Notes', 'Feedback') : it[1]}</span>${it[3] === 'queue' && q ? `<span class="count">${q}</span>` : ''}</a>`).join('');
   /* VPMs get a "View as" switcher: real people, or a sample class that lives only in the browser */
   const real = demoBackup ? demoBackup.people : S.people;
   const opt = (v, label) => `<option value="${v}" ${viewKey === v ? 'selected' : ''}>${esc(label)}</option>`;
@@ -549,7 +572,7 @@ function renderShell() {
   const wk = currentWeek();
   $('#topWeek').innerHTML = wk === 0
     ? `<span class="lbl">${esc(S.program.className)} ·</span> <b>Starts ${fmtDay(S.program.startDate + 'T00:00')}</b>`
-    : `<span class="flag"></span><span class="lbl">${esc(S.program.className)} ·</span> <b>Week ${wk}</b><span class="lbl muted">· Hole ${wk}</span>`;
+    : `<span class="flag"></span><span class="lbl">${esc(S.program.className)} ·</span> <b>Week ${wk}</b>${golf() ? `<span class="lbl muted">· Hole ${wk}</span>` : ''}`;
 }
 
 const ROUTES = {
@@ -641,7 +664,7 @@ function holeTracker() {
     <div class="pb-left">
       <p class="eyebrow">${staff ? 'Your class' : 'Your program'}</p>
       <h2>${esc(prog('programName'))}</h2>
-      <p class="pb-meta">8 weeks <i></i> 8 holes <i></i> ${esc(prog('subtitle'))}</p>
+      <p class="pb-meta">8 weeks <i></i> ${G('8 holes', '8 milestones')} <i></i> ${esc(prog('subtitle'))}</p>
       <div class="pb-progress"><div class="pb-bar"><span style="width:${overall}%"></span></div>
         <b>${staff ? `${overall}% of class work approved` : `${completed} of 8 completed`}</b></div>
     </div>
@@ -686,7 +709,7 @@ function caddieCard() {
   const seen = notesSeen();
   const fresh = pledge ? list.filter(n => n.at > seen).length : 0;
   return `<section class="caddie">
-    <div class="cn-head"><span class="flag" aria-hidden="true"></span><h3>Caddie Notes</h3>${fresh ? `<span class="cn-new">${fresh} new</span>` : ''}</div>
+    <div class="cn-head"><span class="flag" aria-hidden="true"></span><h3>${G('Caddie Notes', 'Feedback')}</h3>${fresh ? `<span class="cn-new">${fresh} new</span>` : ''}</div>
     ${list.length ? `<ul>${list.slice(0, 3).map(n => noteItem(n, { showPledge: !pledge })).join('')}</ul>`
       : `<p class="cn-empty">${pledge ? 'Notes from your pledge educator and VPMs will show up here.' : 'Notes you and other educators send pledges show up here.'}</p>`}
     <a class="cn-all" href="#/feedback">View all feedback →</a>
@@ -694,7 +717,7 @@ function caddieCard() {
 }
 
 function vFeedback() {
-  setTitle(role() === 'pledge' ? 'Caddie Notes' : 'Feedback');
+  setTitle(role() === 'pledge' ? G('Caddie Notes', 'Feedback') : 'Feedback');
   const pledge = role() === 'pledge';
   const list = caddieNotesFor(pledge ? meUid() : null);
   if (pledge) markNotesSeen();
@@ -810,6 +833,17 @@ function courseMap(sel) {
       <span class="pin-t"><b>Clubhouse</b><i>General resources</i></span></button>
   </div>`;
 }
+/* Professional theme: the eight weeks plus general resources as plain tiles */
+function weekTiles(sel) {
+  const states = holeStates();
+  return `<div class="course-intro"><div><p class="eyebrow">${esc(S.program.className || 'Pledge program')} · 8 weeks</p>
+      <p>Pick a week to see its materials and deliverables.</p></div></div>
+    <div class="week-tiles">${states.map(st => `<button type="button" class="wt ${st.done ? 'done' : ''} ${st.current ? 'current' : ''} ${String(st.n) === sel ? 'on' : ''}" data-topic="${st.n}">
+        <span class="wt-n">Week ${st.n}${st.current ? '<em>Now</em>' : st.done ? '<em class="ok">Done</em>' : ''}</span><b>${esc(st.title)}</b>
+        <span class="wt-bar"><i style="width:${st.pct || 0}%"></i></span><span class="wt-p">${st.count ? `${st.pct}% approved` : 'No deliverables'}</span></button>`).join('')}
+      <button type="button" class="wt res ${sel === '0' ? 'on' : ''}" data-topic="0"><span class="wt-n">All weeks</span><b>General resources</b><span class="wt-p">Handbook, calendar, guides</span></button>
+    </div>`;
+}
 /* A zoomed crop of the photo centered on one hole */
 function flyover(n) {
   const [x, y] = HOLES[n - 1].at, s = 3.2;
@@ -859,41 +893,44 @@ function vClasswork() {
   const holed = pledgeView ? asg.filter(d => statusOf(d, meUid()).key === 'approved').length : 0;
   const cls = !pledgeView && asg.length ? classProgress(asg).pct : null;
   const res = pledgeView && n <= 8 ? holeResult(n) : null;
-  const scoreLine = n > 8 ? '' : pledgeView ? (asg.length ? `${holed} of ${asg.length} holed out` : 'No shots to play') : (asg.length ? `${cls}% of the class holed out` : 'No deliverables yet');
+  const scoreLine = n > 8 ? '' : pledgeView ? (asg.length ? `${holed} of ${asg.length} ${G('holed out', 'approved')}` : G('No shots to play', 'Nothing assigned')) : (asg.length ? `${cls}% of the class ${G('holed out', 'approved')}` : 'No deliverables yet');
+  const unit = k => G(`Hole ${k}`, k === 9 ? 'Resources' : `Week ${k}`);
 
   const upBtn = canEdit() ? `<label class="btn sm up-pdf">${I.upload}Upload PDFs<input type="file" id="cwUpload" accept=".pdf,.png,.jpg,.jpeg,.docx,.pptx" multiple hidden></label>` : '';
   const panel = `<section class="hole-panel">
     <div class="hc-top">
-      ${flyover(n)}
+      ${golf() ? flyover(n) : ''}
       <div class="hc-info">
-        <div class="hc-row"><p class="eyebrow">Hole ${n}${n <= 8 ? ` · Week ${n}` : ' · The clubhouse'}${n === currentWeek() ? ' · You are here' : ''}${n <= 8 && rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>${createBtn('top')}</div>
+        <div class="hc-row"><p class="eyebrow">${golf() ? `Hole ${n}${n <= 8 ? ` · Week ${n}` : ' · The clubhouse'}` : n <= 8 ? `Week ${n}` : 'For every week'}${n === currentWeek() ? G(' · You are here', ' · This week') : ''}${n <= 8 && rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>${createBtn('top')}</div>
         <h2>${n <= 8 ? esc(W.title || `Week ${n}`) : 'General resources'}</h2>
-        <p class="hc-sub">${n <= 8 && W.hole ? esc(W.hole) : n > 8 ? 'Handbooks and guides for every week of the program.' : ''}</p>
-        <table class="hole-score" aria-label="Scorecard"><tr>
+        <p class="hc-sub">${n <= 8 && W.hole && golf() ? esc(W.hole) : n > 8 ? 'Handbooks and guides for every week of the program.' : ''}</p>
+        ${golf() ? `<table class="hole-score" aria-label="Scorecard"><tr>
           <th>Hole</th><th>Par</th><th>Yards</th><th>Hcp</th>${n <= 8 ? `<th>${pledgeView ? 'Shots' : 'Class'}</th>` : ''}${res ? '<th>Result</th>' : ''}</tr><tr>
           <td>${n}</td><td>${H.par}</td><td>${H.yds}</td><td>${H.hcp}</td>${n <= 8 ? `<td>${pledgeView ? `${holed}/${asg.length}` : `${cls ?? 0}%`}</td>` : ''}${res ? `<td class="res ${res.tone}">${res.label}</td>` : ''}</tr></table>
-        <p class="hc-note"><b>From the tips:</b> ${H.note}</p>
+        <p class="hc-note"><b>From the tips:</b> ${H.note}</p>`
+        : n <= 8 ? `<table class="hole-score pro" aria-label="Summary"><tr><th>Deliverables</th><th>${pledgeView ? 'Approved' : 'Class approved'}</th><th>Materials</th></tr><tr>
+          <td>${asg.length}</td><td>${pledgeView ? `${holed}/${asg.length}` : `${cls ?? 0}%`}</td><td>${mats.length}</td></tr></table>` : ''}
       </div>
     </div>
-    ${W.summary ? `<p class="caddie-tip"><span class="flag"></span><b>Caddie's tip</b>${esc(W.summary)}</p>` : ''}
+    ${W.summary ? `<p class="caddie-tip"><span class="flag"></span><b>${G('Caddie\'s tip', 'Overview')}</b>${esc(W.summary)}</p>` : ''}
     <div class="hc-body${n > 8 ? ' one' : ''}">
-      <div><h3 class="hc-label">${I.book}Course notes<small>${canEdit() ? upBtn : 'Read before you play'}</small></h3>
-        ${mats.length ? `<div class="yardages">${mats.map(note).join('')}</div>` : '<p class="cw-empty">No materials for this hole.</p>'}</div>
-      ${n <= 8 ? `<div><h3 class="hc-label">${I.list}Your shots<small>${scoreLine}</small></h3>
-        ${asg.length ? asg.map(shot).join('') : '<p class="cw-empty">Nothing assigned for this hole yet.</p>'}</div>` : ''}
+      <div><h3 class="hc-label">${I.book}${G('Course notes', 'Materials')}<small>${canEdit() ? upBtn : G('Read before you play', 'Read before you start')}</small></h3>
+        ${mats.length ? `<div class="yardages">${mats.map(note).join('')}</div>` : `<p class="cw-empty">No materials for this ${G('hole', 'week')}.</p>`}</div>
+      ${n <= 8 ? `<div><h3 class="hc-label">${I.list}${G('Your shots', 'Deliverables')}<small>${scoreLine}</small></h3>
+        ${asg.length ? asg.map(shot).join('') : `<p class="cw-empty">Nothing assigned for this ${G('hole', 'week')} yet.</p>`}</div>` : ''}
     </div>
     <footer class="hc-foot">
-      ${n > 1 ? `<button class="btn sm" data-topic="${n - 1}">${I.left}Hole ${n - 1}</button>` : '<span></span>'}
+      ${n > 1 ? `<button class="btn sm" data-topic="${n - 1}">${I.left}${unit(n - 1)}</button>` : '<span></span>'}
       <span class="grow"></span>${n <= 8 ? `<a class="btn sm" href="#/week/${n}">Week details</a>` : ''}
-      ${n < 9 ? `<button class="btn sm primary" data-topic="${n < 8 ? n + 1 : 0}">Hole ${n + 1}${I.right}</button>` : ''}
+      ${n < 9 ? `<button class="btn sm primary" data-topic="${n < 8 ? n + 1 : 0}">${unit(n + 1)}${I.right}</button>` : ''}
       ${createBtn('bottom')}
     </footer>
   </section>`;
 
   view(`
-    <div class="course-intro"><div><p class="eyebrow">Beta Pi National · Par ${COURSE_PAR} · ${COURSE_YDS.toLocaleString()} yards</p>
+    ${golf() ? `<div class="course-intro"><div><p class="eyebrow">Beta Pi National · Par ${COURSE_PAR} · ${COURSE_YDS.toLocaleString()} yards</p>
       <p>One hole per week, and hole 9 finishes at the clubhouse with the general resources. Pick a hole to see its course notes and the shots you need to play.</p></div></div>
-    ${courseMap(sel)}
+    ${courseMap(sel)}` : weekTiles(sel)}
     ${panel}`);
 
   const pick = t => { cwTopic = t; vClasswork(); $('.hole-panel')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' }); };
@@ -1050,7 +1087,7 @@ function vPledgeHome() {
 
   view(`
     <section class="week-hero"><div class="wh-photo" style="background-image:url('${weekPhoto(n)}')" role="img" aria-label="Golf course, hole ${n}"></div><div class="wh-copy">
-      <p class="eyebrow light">${wk === 0 ? `Starts ${fmtDay(S.program.startDate + 'T00:00')} · Hole 1` : weekLabel(n)}</p>
+      <p class="eyebrow light">${wk === 0 ? `Starts ${fmtDay(S.program.startDate + 'T00:00')} ${G(" · Hole 1", "")}` : weekLabel(n)}</p>
       <h1>${esc(W.title || `Week ${n}`)}</h1>
       ${W.hole ? `<div class="hole">${esc(W.hole)}</div>` : ''}
       ${W.summary ? `<p>${esc(W.summary)}</p>` : ''}
@@ -1104,7 +1141,7 @@ function vProgram() {
       return `<a class="hole-card" href="#/week/${n}">
         <div class="ph" style="background-image:url('${weekPhoto(n, 700)}')" role="img" aria-label="Golf course, hole ${n}"></div>
         <div class="info">
-          <p class="hole-meta">Week ${n} · Hole ${n}${n === wk ? '<span class="now"><span class="flag"></span>This week</span>' : ''}</p>
+          <p class="hole-meta">${weekLabel(n)}${n === wk ? '<span class="now"><span class="flag"></span>This week</span>' : ''}</p>
           <h3>${esc(W.title || `Week ${n}`)}</h3>
           <p class="sub">${esc([W.hole, rangeText(n)].filter(Boolean).join(' · ')) || '&nbsp;'}</p>
           <div class="row"><div class="bar grow"><i style="width:${pct}%"></i></div><span>${role() === 'pledge' ? `${prog.done} of ${prog.total} approved` : `${pct}% approved`}</span></div>

@@ -1143,3 +1143,42 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 /* Keep the whole course on screen on desktop: about 62% of the window height, never wider than 980px */
 .course-photo { width: min(100%, 980px, calc(62vh * 1.34)); margin: 0 auto; }
 @media (max-width: 860px) { .course-photo { width: 100%; } }
+
+/* ─── Theme switch (bottom of the page) ─── */
+.ptheme-switch { position: fixed; z-index: 40; bottom: 18px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 99px;
+  background: rgba(10, 29, 53, .82); -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 12px 30px rgba(10,29,53,.28); }
+.ptheme-switch::before { content: ""; position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 99px; background: linear-gradient(90deg, #1F7A4D, #2E9A5E); transform: translateX(100%); transition: transform .35s cubic-bezier(.32,.72,0,1), background .35s; }
+:root[data-ptheme="pro"] .ptheme-switch::before { transform: translateX(0); background: #fff; }
+.ptheme-switch button { position: relative; z-index: 1; padding: 8px 18px; border-radius: 99px; font: 700 .72rem/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.7); transition: color .25s; }
+.ptheme-switch button[aria-pressed="true"] { color: #fff; }
+:root[data-ptheme="pro"] .ptheme-switch button[aria-pressed="true"] { color: var(--brand-deep); }
+.ptheme-switch button:focus-visible { outline: 2px solid #F2C14E; outline-offset: 2px; }
+@media (min-width: 861px) { .app:not([hidden]) ~ .ptheme-switch { left: calc(50% + 118px); } }
+.main, .view { padding-bottom: 84px; }
+@media (prefers-reduced-motion: reduce) { .ptheme-switch::before { transition: none; } }
+
+/* ─── Professional theme ─── */
+:root[data-ptheme="pro"] { --gold: #4A78B5; --gold-ink: #1D4E80; --gold-wash: #EAF0F8; --serif: var(--display); }
+:root[data-ptheme="pro"] .hero-welcome { background-image: linear-gradient(120deg, #0A1D35 0%, #12305B 55%, #1D4E80 100%) !important; }
+:root[data-ptheme="pro"] .hero-welcome::before { background: radial-gradient(80% 120% at 85% 0%, rgba(255,255,255,.08), transparent 60%); }
+:root[data-ptheme="pro"] .program-banner .eyebrow { color: #A9C2E4; }
+:root[data-ptheme="pro"] .hc-top { background: linear-gradient(180deg, #F4F7FB, #fff); grid-template-columns: 1fr; }
+:root[data-ptheme="pro"] .caddie-tip .flag { display: none; }
+.hole-score.pro td { font-family: var(--display); font-weight: 700; }
+.week-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.wt { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 14px; background: #fff; text-align: left; transition: border-color .15s, box-shadow .15s, transform .1s; }
+.wt:hover { border-color: var(--brand-ink); box-shadow: 0 8px 22px rgba(15,42,74,.1); }
+.wt:active { transform: scale(.98); }
+.wt-n { display: flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.wt-n em { margin-left: auto; font-style: normal; font-size: .62rem; padding: 2px 7px; border-radius: 99px; background: var(--brand-wash); color: var(--brand-ink); }
+.wt-n em.ok { background: #E5F3EA; color: var(--ok); }
+.wt b { font-weight: 700; color: var(--ink); line-height: 1.25; min-height: 2.5em; }
+.wt-bar { height: 4px; border-radius: 99px; background: var(--rule-2); overflow: hidden; margin-top: 4px; }
+.wt-bar i { display: block; height: 100%; background: var(--brand-ink); border-radius: inherit; }
+.wt-p { font-size: .78rem; color: var(--muted); }
+.wt.current { border-color: var(--brand-ink); }
+.wt.on { background: var(--brand); border-color: var(--brand); }
+.wt.on b, .wt.on .wt-n, .wt.on .wt-p { color: #fff; }
+.wt.on .wt-bar { background: rgba(255,255,255,.25); }
+.wt.on .wt-bar i { background: #fff; }
+.wt.res b { min-height: 0; }
