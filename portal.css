@@ -1140,3 +1140,6 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
   .hc-foot { row-gap: 10px; }
   .hc-foot .create-bottom .btn { min-height: 44px; padding: 10px 22px; }
 }
+/* Keep the whole course on screen on desktop: about 62% of the window height, never wider than 980px */
+.course-photo { width: min(100%, 980px, calc(62vh * 1.34)); margin: 0 auto; }
+@media (max-width: 860px) { .course-photo { width: 100%; } }
