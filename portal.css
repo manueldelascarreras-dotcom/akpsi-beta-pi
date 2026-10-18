@@ -1216,3 +1216,6 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 .hc-sub:empty { display: none; }
 .hc-row #cwEditWeek svg { width: 14px; height: 14px; }
 @media (max-width: 860px) { .hc-row { flex-wrap: wrap; } }
+:root[data-ptheme="pro"] .holes-track { column-gap: 14px; }
+:root[data-ptheme="pro"] .holes-track a { padding: 0; }
+:root[data-ptheme="pro"] .ht-name { width: 100%; max-width: 100%; text-wrap: balance; }
