@@ -1184,3 +1184,32 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 .ptheme-switch.in-app { margin: 8px auto 28px; }
 .auth-body { align-content: center; }
 .ptheme-switch.in-auth { margin: 22px auto 0; }
+
+/* Text that only shows in one theme */
+:root[data-ptheme="pro"] .g-only, :root:not([data-ptheme="pro"]) .p-only { display: none; }
+
+/* Professional: welcome banner with the crest */
+.hw-crest, .hw-lockup { display: none; }
+:root[data-ptheme="pro"] .hw-lockup { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: .78rem; font-weight: 600; letter-spacing: .08em; color: rgba(255,255,255,.82); }
+:root[data-ptheme="pro"] .hw-lockup img { height: 38px; width: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
+:root[data-ptheme="pro"] .hw-crest { display: block; position: absolute; right: -40px; bottom: -70px; height: 360px; width: auto; opacity: .07; filter: grayscale(1) brightness(2.2); pointer-events: none; }
+:root[data-ptheme="pro"] .hero-welcome .eyebrow.light { color: #A9C2E4; }
+:root[data-ptheme="pro"] .hw-quote { border-left-color: rgba(169,194,228,.5); }
+
+/* Professional: a clean step tracker instead of golf holes */
+:root[data-ptheme="pro"] .holes-track { padding-top: 6px; }
+:root[data-ptheme="pro"] .holes-track::before { top: calc(6px + 16px); border-top: 2px solid rgba(255,255,255,.14); }
+:root[data-ptheme="pro"] .ht-dot { width: 32px; height: 32px; font-size: .8rem; border-width: 2px; margin-bottom: 8px; }
+:root[data-ptheme="pro"] .holes-track li.done .ht-dot { background: #4A78B5; border-color: #4A78B5; color: #fff; }
+:root[data-ptheme="pro"] .holes-track li.current .ht-dot { width: 32px; height: 32px; margin: 0 0 8px; border: 2px solid #fff; background: #fff; color: var(--brand-deep); box-shadow: 0 0 0 5px rgba(255,255,255,.14); }
+:root[data-ptheme="pro"] .holes-track b { font-size: .64rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.55); }
+:root[data-ptheme="pro"] .holes-track li.current b { color: #fff; }
+:root[data-ptheme="pro"] .ht-name { max-width: none; padding: 0 2px; font-size: .7rem; overflow-wrap: normal; hyphens: manual; }
+:root[data-ptheme="pro"] .ht-pct { color: #A9C2E4; }
+:root[data-ptheme="pro"] .pb-bar span { background: #A9C2E4; }
+
+/* Professional: sign-in page without the golf photo */
+:root[data-ptheme="pro"] .auth { background: radial-gradient(70% 60% at 50% 0%, rgba(74,120,181,.28), transparent 70%), linear-gradient(180deg, #0A1D35 0%, #0F2A4A 55%, #0A1D35 100%); --a-gold: #A9C2E4; --a-gold-2: #DCE7F5; }
+:root[data-ptheme="pro"] .auth::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: url('images/crest.png') no-repeat right -120px bottom -160px / 620px auto; opacity: .05; filter: grayscale(1) brightness(2); }
+:root[data-ptheme="pro"] .auth > * { position: relative; }
+:root[data-ptheme="pro"] .cn-head .flag, :root[data-ptheme="pro"] .topbar .flag { display: none; }

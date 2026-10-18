@@ -364,7 +364,7 @@ function showAuth(mode = 'signin', msg = '', prefill = {}) {
         <img class="land-crest" src="images/crest.png" alt="Alpha Kappa Psi crest">
         <p class="land-greek" aria-hidden="true">ΑΚΨ</p>
         <h1 class="land-title">Beta Pi <em>Pledge Program</em></h1>
-        <p class="land-tag">Eight weeks. Eight holes. Enter your code to tee off.</p>
+        <p class="land-tag"><span class="g-only">Eight weeks. Eight holes. Enter your code to tee off.</span><span class="p-only">Eight weeks of professional development, brotherhood and service. Enter your invite code to begin.</span></p>
         <div class="otp" id="otp" role="group" aria-label="Access code"></div>
         <p class="otp-msg" id="otpMsg" aria-live="polite">8 characters from your VPM. Paste works too.</p>
         ${PREVIEW_CODE ? `<p class="land-preview">Just looking? Use preview code <button type="button" class="code-chip" id="usePreview">${PREVIEW_CODE}</button></p>` : ''}
@@ -674,12 +674,12 @@ function holeTracker() {
       <div class="pb-progress"><div class="pb-bar"><span style="width:${overall}%"></span></div>
         <b>${staff ? `${overall}% of class work approved` : `${completed} of 8 completed`}</b></div>
     </div>
-    <ol class="holes-track" aria-label="Eight holes">
+    <ol class="holes-track" aria-label="${G('Eight holes', 'Eight weeks')}">
       ${holes.map(h => `<li class="${h.done ? 'done' : ''} ${h.current ? 'current' : ''}">
         <a href="#/week/${h.n}" title="Week ${h.n}: ${esc(h.title)}${staff ? ` · ${h.pct}% approved` : ''}">
-          ${h.current ? '<span class="ht-flag" aria-hidden="true"></span>' : ''}
+          ${h.current && golf() ? '<span class="ht-flag" aria-hidden="true"></span>' : ''}
           <span class="ht-dot">${h.done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : h.n}</span>
-          <b>${h.n}</b><span class="ht-name">${esc(h.title)}</span>
+          <b>${G(h.n, `Week ${h.n}`)}</b><span class="ht-name">${esc(h.title)}</span>
           ${staff && h.count ? `<span class="ht-pct">${h.pct}%</span>` : ''}
         </a></li>`).join('')}
     </ol>
@@ -771,7 +771,8 @@ function vStream() {
 
   view(`
     <section class="hero-welcome" style="background-image:url('${heroImage()}')">
-      <div class="hw-copy"><p class="eyebrow light">${weekLabel(wk)} · ${esc(W.title || '')}</p>
+      <img class="hw-crest" src="images/crest.png" alt="" aria-hidden="true">
+      <div class="hw-copy"><p class="hw-lockup"><img src="images/crest.png" alt="">Alpha Kappa Psi · Beta Pi Chapter</p><p class="eyebrow light">${weekLabel(wk)} · ${esc(W.title || '')}</p>
         <h1>Welcome back, ${esc(first(meName()))}.</h1><p>${esc(prog('tagline'))}</p></div>
       ${prog('quote') ? `<blockquote class="hw-quote">${esc(prog('quote'))}</blockquote>` : ''}
     </section>
