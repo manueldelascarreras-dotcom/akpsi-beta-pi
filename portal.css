@@ -1213,3 +1213,6 @@ table.gradebook td:first-child, table.gradebook th:first-child { text-align: lef
 :root[data-ptheme="pro"] .auth::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: url('images/crest.png') no-repeat right -120px bottom -160px / 620px auto; opacity: .05; filter: grayscale(1) brightness(2); }
 :root[data-ptheme="pro"] .auth > * { position: relative; }
 :root[data-ptheme="pro"] .cn-head .flag, :root[data-ptheme="pro"] .topbar .flag { display: none; }
+.hc-sub:empty { display: none; }
+.hc-row #cwEditWeek svg { width: 14px; height: 14px; }
+@media (max-width: 860px) { .hc-row { flex-wrap: wrap; } }

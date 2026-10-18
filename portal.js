@@ -908,7 +908,7 @@ function vClasswork() {
     <div class="hc-top">
       ${golf() ? flyover(n) : ''}
       <div class="hc-info">
-        <div class="hc-row"><p class="eyebrow">${golf() ? `Hole ${n}${n <= 8 ? ` · Week ${n}` : ' · The clubhouse'}` : n <= 8 ? `Week ${n}` : 'For every week'}${n === currentWeek() ? G(' · You are here', ' · This week') : ''}${n <= 8 && rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>${createBtn('top')}</div>
+        <div class="hc-row"><p class="eyebrow">${golf() ? `Hole ${n}${n <= 8 ? ` · Week ${n}` : ' · The clubhouse'}` : n <= 8 ? `Week ${n}` : 'For every week'}${n === currentWeek() ? G(' · You are here', ' · This week') : ''}${n <= 8 && rangeText(n) ? ` · ${rangeText(n)}` : ''}</p>${canEdit() && n <= 8 ? `<button class="btn sm" id="cwEditWeek">${I.edit}Edit week</button>` : ''}${createBtn('top')}</div>
         <h2>${n <= 8 ? esc(W.title || `Week ${n}`) : 'General resources'}</h2>
         <p class="hc-sub">${n <= 8 && W.hole && golf() ? esc(W.hole) : n > 8 ? 'Handbooks and guides for every week of the program.' : ''}</p>
         ${golf() ? `<table class="hole-score" aria-label="Scorecard"><tr>
@@ -958,6 +958,7 @@ function vClasswork() {
       toast(`${list.length === 1 ? 'PDF' : `${list.length} files`} added to ${week ? `hole ${week}` : 'the clubhouse'}.`); route();
     } catch (y) { toast(y.message, true); }
   });
+  $('#cwEditWeek')?.addEventListener('click', () => weekModal(n));
   const menus = $$('.hole-panel .create-menu');
   $$('[data-create]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const m = b.nextElementSibling; const open = m.hidden; menus.forEach(x => { x.hidden = true; }); m.hidden = !open; }));
   document.addEventListener('click', () => menus.forEach(x => { x.hidden = true; }), { once: true });
@@ -969,6 +970,27 @@ function vClasswork() {
       return announcementModal(null); }
     const er = e.target.closest('[data-edit-r]'); if (er) { e.stopPropagation(); return resourceModal(S.resources.find(r => r.id === er.dataset.editR)); }
     const m = e.target.closest('[data-mat]'); if (m) return materialDrawer(S.resources.find(r => r.id === m.dataset.mat));
+  };
+}
+
+/* VPMs rename a week and edit its subtitle and overview right from Classwork */
+function weekModal(n) {
+  const W = S.program.weeks[n - 1] || {};
+  const m = modal(`Edit week ${n}`, `<div class="stack">
+    <label class="f"><span>Week name</span><input class="input" id="wTitle" maxlength="60" value="${esc(W.title || '')}" placeholder="Professional Development"><small>Shows on the week tiles, the home tracker, and the course.</small></label>
+    <label class="f"><span>Subtitle</span><input class="input" id="wHole" maxlength="80" value="${esc(W.hole || '')}" placeholder="Reading the green"><small>Short line under the name (Golf theme).</small></label>
+    <label class="f"><span>Overview</span><textarea class="textarea" id="wSummary" rows="3" maxlength="400" placeholder="Resume, LinkedIn, and your elevator pitch.">${esc(W.summary || '')}</textarea><small>What this week is about. Shown as the Overview / Caddie's tip.</small></label>
+    ${rangeText(n) ? `<p class="small muted">${rangeText(n)}. Dates follow the program start date in Weeks & class.</p>` : ''}
+  </div>`, 'Save week');
+  m.onOk = async () => {
+    const title = $('#wTitle', m.el).value.trim();
+    if (!title) throw new Error('Give the week a name.');
+    const P = JSON.parse(JSON.stringify(S.program));
+    while (P.weeks.length < 8) P.weeks.push({});
+    P.weeks[n - 1] = { ...P.weeks[n - 1], title, hole: $('#wHole', m.el).value.trim(), summary: $('#wSummary', m.el).value.trim() };
+    if (DEMO) { S.program = P; toast('Updated for this preview only. Nothing is saved.'); }
+    else { const res = await api('PUT', 'program', P); S.program = res.program; toast(`Week ${n} saved.`); }
+    renderShell(); route();
   };
 }
 
