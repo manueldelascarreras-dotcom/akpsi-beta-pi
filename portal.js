@@ -928,7 +928,7 @@ function vClasswork() {
     </div>
     <footer class="hc-foot">
       ${n > 1 ? `<button class="btn sm" data-topic="${n - 1}">${I.left}${unit(n - 1)}</button>` : '<span></span>'}
-      <span class="grow"></span>${n <= 8 ? `<a class="btn sm" href="#/week/${n}">Week details</a>` : ''}
+      <span class="grow"></span>
       ${n < 9 ? `<button class="btn sm primary" data-topic="${n < 8 ? n + 1 : 0}">${unit(n + 1)}${I.right}</button>` : ''}
       ${createBtn('bottom')}
     </footer>
